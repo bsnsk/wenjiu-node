@@ -6,7 +6,15 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
+var requests = require('./routes/requests');
+var responses = require('./routes/responses');
 var users = require('./routes/users');
+var multimedia = require('./routes/multimedia');
+
+var options = require('./.wenjiu.mysql.json');
+options["connectionLimit"] = 10;
+console.log(options);
+var db = require('./db').init("alchpool", options);
 
 var app = express();
 
@@ -22,8 +30,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// several routes 
+// - index
 app.use('/', routes);
+// - users 
 app.use('/users', users);
+// - requests 
+app.use('/requests', requests);
+// - responses 
+app.use('/responses', responses);
+// - multimedia
+app.use('/multimedia', multimedia);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -1,4 +1,5 @@
 var express = require('express');
+var typecheck = require('../typecheck');
 var router = express.Router();
 
 router.post('/', (req, res, next) => {
@@ -6,6 +7,13 @@ router.post('/', (req, res, next) => {
   var db = require('../db').alchpool;
   var username = req.body.username;
   var password = req.body.password;
+
+  if (!typecheck.check(username, "int") 
+    || !typecheck.check(password, "string")) {
+    typecheck.report(res);
+    return;
+  }
+
 
   db.query("SELECT userid FROM all_users WHERE username='"
       + username + "';", (err, rows, fields) => {

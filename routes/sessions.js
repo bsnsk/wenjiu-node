@@ -1,6 +1,7 @@
 var express = require('express');
 var jwt = require('jsonwebtoken');
 var userconf = require('../.users.json');
+var typecheck = require('../typecheck');
 var router = express.Router();
 
 router.post('/', (req, res, next) => {
@@ -9,10 +10,16 @@ router.post('/', (req, res, next) => {
   var username = req.body.username;
   var password = req.body.password;
 
+  if (!typecheck.check(username, "string") 
+    || !typecheck.check(password, "string")) {
+    typecheck.report(res);
+    return;
+  }
+
   console.log({"user_login": {"username": username, "password": password}});
 
-  db.query("SELECT userid, passwordhash FROM all_users WHERE username='" 
-      + username + "';", (err, rows, fields) => {
+  db.query("SELECT userid, passwordhash FROM all_users WHERE username=?;",
+      [username], (err, rows, fields) => {
 
     if (err) {
       console.log(err);
@@ -40,8 +47,8 @@ router.post('/', (req, res, next) => {
         "userid": rows[0]['userid'],
         "timestamp": new Date()
       },  userconf['private_key']);
-      db.query("INSERT INTO valid_tokens (`userid`, `token`) VALUES (" 
-        + rows[0]['userid'].toString() + ", '" + token + "');", 
+      db.query("INSERT INTO valid_tokens (`userid`, `token`) VALUES (?, ?);",
+        [rows[0]['userid'].toString(), token],
         (err, rows, fields) => {
           if (err) {
             console.log(err);
@@ -71,16 +78,20 @@ router.post('/', (req, res, next) => {
 
 router.delete('/', (req, res, next) => {
   var db = require('../db').alchpool;
-  var userid = req.headers.userid;
+  var userid = parseInt(req.headers.userid);
   var token = req.headers.token;
+
+  if (!typecheck.check(userid, "int") 
+    || !typecheck.check(password, "string")) {
+    typecheck.report(res);
+    return;
+  }
 
   console.log({"logout" : {"userid": userid, "token": token}});
 
-  return;
+  db.query("SELECT userid, token FROM valid_tokens WHERE userid=?;",
+    [userid], (err, rows, fields) => {
 
-  db.query("SELECT userid, token FROM valid_tokens WHERE userid='"
-    + userid + "';", (err, rows, fields) => {
-      
     if (err) {
       console.log(err);
       return;
@@ -100,8 +111,8 @@ router.delete('/', (req, res, next) => {
        "message": "user not logged in"
       }))
     else {
-      db.query("DELETE FROM valid_tokens WHERE userid="
-        + userid + " AND token='" + token + "';", (err, rows, fields) => {
+      db.query("DELETE FROM valid_tokens WHERE userid=? AND token=?;",
+        [userid, token], (err, rows, fields) => {
         if (err) {
           console.log(err);
         }

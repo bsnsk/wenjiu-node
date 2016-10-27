@@ -1,2 +1,2 @@
 #!/usr/bin/env bash 
-npm start --harmony-async-await
+node --harmony-async-await bin/www

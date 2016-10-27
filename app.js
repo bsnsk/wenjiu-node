@@ -10,6 +10,7 @@ var requests = require('./routes/requests');
 var responses = require('./routes/responses');
 var users = require('./routes/users');
 var multimedia = require('./routes/multimedia');
+var sessions = require('./routes/sessions');
 
 var options = require('./.wenjiu.mysql.json');
 options["connectionLimit"] = 10;
@@ -33,14 +34,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // several routes 
 // - index
 app.use('/', routes);
+// - session 
+app.use('/api/sessions', sessions);
 // - users 
-app.use('/users', users);
+app.use('/api/users', users);
 // - requests 
-app.use('/requests', requests);
+app.use('/api/requests', requests);
 // - responses 
-app.use('/responses', responses);
+app.use('/api/responses', responses);
 // - multimedia
-app.use('/multimedia', multimedia);
+app.use('/api/multimedia', multimedia);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

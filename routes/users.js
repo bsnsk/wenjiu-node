@@ -1,20 +1,38 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
+router.post('/', (req, res, next) => {
 
   var db = require('../db').alchpool;
+  var username = req.body.username;
+  var password = req.body.password;
 
-  db.query('SELECT username FROM all_users;', function(err, rows, fields){
-    console.log(rows);
-    console.log('delimiter');
-    console.log(fields);
-    var userlist="all users: <br><ul>";
-    for (var i=0; i<rows.length; i++)
-      userlist += "<li>" + rows[i]['username'] + '</li>';
-    userlist += '</ul>';
-    res.send(userlist);
+  db.query("SELECT userid FROM all_users WHERE username='"
+      + username + "';", (err, rows, fields) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    if (rows.length > 0)
+      res.send(JSON.stringify({
+        "status": "failure",
+        "message": "username existing"
+      }));
+    else {
+      db.query("INSERT INTO all_users (`username`, `passwordhash`) VALUES ('"
+        + username + "', '" + password + "');",
+        (err, rows, fields) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          res.send(JSON.stringify({
+            "status": "success",
+            "message": "user registration"
+          }));
+        });
+    }
   });
 });
 

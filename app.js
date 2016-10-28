@@ -12,7 +12,9 @@ var users = require('./routes/users');
 var multimedia = require('./routes/multimedia');
 var sessions = require('./routes/sessions');
 
-var options = require('./.wenjiu.mysql.json');
+var test = require('./routes/test');
+
+var options = require('./.conf.json').mysql;
 options["connectionLimit"] = 10;
 console.log(options);
 var db = require('./db').init("alchpool", options);
@@ -44,6 +46,9 @@ app.use('/api/requests', requests);
 app.use('/api/responses', responses);
 // - multimedia
 app.use('/api/multimedia', multimedia);
+
+// - test 
+app.use('/api/test', test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

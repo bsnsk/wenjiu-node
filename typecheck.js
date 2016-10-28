@@ -5,7 +5,7 @@ module.exports = {
       case "int":
         return !isNaN(parseInt(variable)); 
       case "string":
-        return variable.toString() == variable;
+        return !(variable === undefined) && variable.toString() == variable;
       case "not_null":
         if (variable === undefined)
           return 0;

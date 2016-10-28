@@ -4,6 +4,9 @@ var userconf = require('../.users.json');
 var typecheck = require('../typecheck');
 var router = express.Router();
 
+/*
+ * [POST] User login 
+ */
 router.post('/', (req, res, next) => {
 
   var db = require('../db').alchpool;
@@ -75,7 +78,9 @@ router.post('/', (req, res, next) => {
   });
 });
 
-
+/*
+ * [DELETE] User logout
+ */
 router.delete('/', (req, res, next) => {
   var db = require('../db').alchpool;
   var userid = parseInt(req.headers.userid);

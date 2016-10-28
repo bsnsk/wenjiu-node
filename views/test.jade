@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  center
+    p temporary id: #{new_id}
+    form(action="/api/users", method="post")
+      input(type="text", placeholder="username", name="username")
+      input(type="password", placeholder="password", name="password")
+      button(type="submit") Register New User
+    form(action="/api/sessions", method="post")
+      input(type="text", placeholder="username", name="username")
+      input(type="password", placeholder="password", name="password")
+      button(type="submit") User Login 

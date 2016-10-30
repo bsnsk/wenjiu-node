@@ -1,6 +1,6 @@
 var express = require('express');
 var path = require('path');
-var typecheck = require('../typecheck');
+var typecheck = require('../helpers/typecheck');
 var router = express.Router();
 
 router.get('/', (req, res, next) => {

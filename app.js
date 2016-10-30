@@ -17,7 +17,7 @@ var test = require('./routes/test');
 var options = require('./.conf.json').mysql;
 options["connectionLimit"] = 10;
 console.log(options);
-var db = require('./db').init("alchpool", options);
+var db = require('./helpers/db').init("alchpool", options);
 
 var app = express();
 

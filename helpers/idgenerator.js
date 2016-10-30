@@ -1,7 +1,7 @@
 var smartid = require('smart-id');
 var typecheck = require('./typecheck');
 var mysql = require('mysql2/promise');
-var mysqlconf = require('./.conf.json').mysql;
+var mysqlconf = require('../.conf.json').mysql;
 
 module.exports = {
   genInt: async (type) => {

@@ -1,7 +1,7 @@
 var express = require('express');
 var jwt = require('jsonwebtoken');
 var userconf = require('../.users.json');
-var typecheck = require('../typecheck');
+var typecheck = require('../helpers/typecheck');
 var router = express.Router();
 
 /*
@@ -9,7 +9,7 @@ var router = express.Router();
  */
 router.post('/', (req, res, next) => {
 
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   var username = req.body.username;
   var password = req.body.password;
 
@@ -82,7 +82,7 @@ router.post('/', (req, res, next) => {
  * [DELETE] User logout
  */
 router.delete('/', (req, res, next) => {
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   var userid = parseInt(req.headers.userid);
   var token = req.headers.token;
 

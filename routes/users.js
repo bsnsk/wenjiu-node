@@ -1,6 +1,6 @@
 var express = require('express');
-var typecheck = require('../typecheck');
-var idgenerator = require('../idgenerator');
+var typecheck = require('../helpers/typecheck');
+var idgenerator = require('../helpers/idgenerator');
 var router = express.Router();
 
 /*
@@ -8,7 +8,7 @@ var router = express.Router();
  */
 router.post('/', (req, res, next) => {
 
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   var username = req.body.username;
   var password = req.body.password;
 

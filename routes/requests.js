@@ -1,7 +1,7 @@
 var express = require('express');
-var idgenerator = require('../idgenerator');
-var typecheck = require('../typecheck');
-var userAuth = require('../userAuth').authenticate;
+var idgenerator = require('../helpers/idgenerator');
+var typecheck = require('../helpers/typecheck');
+var userAuth = require('../helpers/userAuth').authenticate;
 var router = express.Router();
 
 /*
@@ -10,7 +10,7 @@ var router = express.Router();
 router.get('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var token = req.headers.token;
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   db.query(
     'SELECT * FROM available_requests ' +
     'WHERE status IS NULL ' +
@@ -41,7 +41,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
     typecheck.report(res);
     return;
   }
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   db.query(
     'SELECT * FROM available_requests WHERE request_id=?',
     [request_id],
@@ -82,7 +82,7 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
     return;
   }
 
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   db.query('SELECT publisher_id, status FROM available_requests WHERE request_id=?;',
     [request_id],
     (err, rows, fields) => {
@@ -131,7 +131,7 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
  * [POST] Publish a request 
  */
 router.post('/', userAuth, async (req, res, next) => {
-  var db = require('../db').alchpool;
+  var db = require('../helpers/db').alchpool;
   var userid = parseInt(req.headers.userid);
   var token = req.headers.token;
   var title = req.body.title;

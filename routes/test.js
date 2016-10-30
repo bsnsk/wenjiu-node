@@ -1,5 +1,5 @@
 var express = require('express');
-var idgenerator = require('../idgenerator');
+var idgenerator = require('../helpers/idgenerator');
 var router = express.Router();
 
 router.get('/', async function(req, res, next) {

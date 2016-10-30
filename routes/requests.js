@@ -9,7 +9,6 @@ var router = express.Router();
  */
 router.get('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
-  var token = req.headers.token;
   var db = require('../helpers/db').alchpool;
   db.query(
     'SELECT * FROM available_requests ' +
@@ -36,7 +35,6 @@ router.get('/', userAuth, async (req, res, next) => {
 router.get('/:request_id', userAuth, async (req, res, next) => {
   var request_id = parseInt(req.params.request_id);
   var userid = parseInt(req.headers.userid);
-  var token = req.headers.token;
   if (!typecheck.check(request_id, "int")) {
     typecheck.report(res);
     return;
@@ -74,7 +72,6 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
  */
 router.delete('/:request_id', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
-  var token = req.headers.token;
   var request_id = parseInt(req.params.request_id);
 
   if (!typecheck.check(request_id, "int")) {
@@ -116,12 +113,11 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
           "WHERE request_id=?", [request_id], (err, rows, fields) => {
             if (err)
               console.log(err);
+            res.send(JSON.stringify({
+              "status": "success",
+              "message": "request deleted successfully.",
+            }));
           });
-        res.send(JSON.stringify({
-          "status": "success",
-          "message": "request deleted successfully.",
-          "content": rows[0]
-        }));
       }
     });
 });
@@ -133,18 +129,15 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
 router.post('/', userAuth, async (req, res, next) => {
   var db = require('../helpers/db').alchpool;
   var userid = parseInt(req.headers.userid);
-  var token = req.headers.token;
   var title = req.body.title;
   var text = req.body.text;
-  var end_time = req.body.finishtime;
+  var end_time = req.body.endtime;
 
   if (!typecheck.check(title, "string")
     || !typecheck.check(text, "string")) {
     typecheck.report(res);
     return;
   }
-
-  console.log({"publish request" : {"userid": userid, "token": token}});
 
   let id = await idgenerator.genInt('request');
   let request_info = 

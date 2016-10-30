@@ -29,18 +29,29 @@ in the body.
   - `text`, and 
   - `end_time`.
 
-- view a request [GET] @ `/api/requests/:request_id` with 
+- view a request, [GET] @ `/api/requests/:request_id` with 
   - `userid`,
   - `token`.
 
-- delete a request [DELETE] @ `/api/requests/:request_id` with 
+- delete a request, [DELETE] @ `/api/requests/:request_id` with 
   - `userid`,
   - `token`, and 
   - `request_id`.
 
-- view recent requests [GET] @ `/api/requests` with 
+- view recent requests, [GET] @ `/api/requests` with 
   - `userid`, and
   - `token`.
+
+- publish a resposne, [POST] @ `/api/responses` with 
+  - `userid`,
+  - `token`,
+  - `text`, and 
+  - `request_id`.
+
+- delete a response, [DELETE] @ `/api/responses/:response_id` with 
+  - `userid`,
+  - `token`, and
+  - `response_id`.
 
 ### API Responses
 

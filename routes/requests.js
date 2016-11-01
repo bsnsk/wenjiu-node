@@ -7,7 +7,7 @@ var router = express.Router();
 /*
  * [GET] View a list of requests 
  */
-router.get('/', userAuth, async (req, res, next) => {
+router.get('/', userAuth, (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var db = require('../helpers/db').alchpool;
   db.query(
@@ -32,7 +32,7 @@ router.get('/', userAuth, async (req, res, next) => {
 /* 
  * [GET] View a request 
  */
-router.get('/:request_id', userAuth, async (req, res, next) => {
+router.get('/:request_id', userAuth, (req, res, next) => {
   var request_id = parseInt(req.params.request_id);
   var userid = parseInt(req.headers.userid);
   if (!typecheck.check(request_id, "int")) {
@@ -70,7 +70,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
 /* 
  * [DELETE] Delete a request 
  */
-router.delete('/:request_id', userAuth, async (req, res, next) => {
+router.delete('/:request_id', userAuth, (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var request_id = parseInt(req.params.request_id);
 

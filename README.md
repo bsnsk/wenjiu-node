@@ -15,8 +15,8 @@ in the body.
   - and other optional fields (to be implemented).
 
 - user login, [POST] @ `/api/sessions` with 
-  - `userid` (integer), and
-  - `token` (string).
+  - `username`, and
+  - `password`.
 
 - user logout, [DELETE] @ `/api/sessions` with 
   - `userid` (integer), and

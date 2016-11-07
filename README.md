@@ -53,6 +53,14 @@ in the body.
   - `token`, and
   - `response_id`.
 
+- view request history, [GET] @ `/api/users/requests` with 
+  - `userid` and 
+  - `token`.
+
+- view response history, [GET] @ `/api/users/responses` with 
+  - `userid` and 
+  - `token`.
+
 ### API Responses
 
 Responses are in JSON format and have at least two fields:

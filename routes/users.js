@@ -1,6 +1,7 @@
 var express = require('express');
 var typecheck = require('../helpers/typecheck');
 var idgenerator = require('../helpers/idgenerator');
+var userAuth = require('../helpers/userAuth').authenticate;
 var router = express.Router();
 
 /*
@@ -49,6 +50,58 @@ router.post('/', (req, res, next) => {
         });
     }
   });
+});
+
+/*
+ * [GET] View a list of requests 
+ */
+router.get('/requests', userAuth, (req, res, next) => {
+  var userid = parseInt(req.headers.userid);
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    'SELECT * FROM available_requests ' +
+    'WHERE publisher_id=? ' +
+    'ORDER BY end_time DESC ' + 
+    'LIMIT 20;',
+    [userid],
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      res.send(JSON.stringify({
+        "status": "success",
+        "message": "fetch user requests",
+        "content": rows 
+      }));
+    }
+  );
+});
+
+/*
+ * [GET] View a list of responses
+ */
+router.get('/responses', userAuth, (req, res, next) => {
+  var userid = parseInt(req.headers.userid);
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    'SELECT * FROM available_responses ' +
+    'WHERE actor_id=? ' +
+    'ORDER BY push_time DESC ' + 
+    'LIMIT 20;',
+    [userid],
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      res.send(JSON.stringify({
+        "status": "success",
+        "message": "fetch user responses",
+        "content": rows 
+      }));
+    }
+  );
 });
 
 module.exports = router;

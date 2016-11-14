@@ -13,8 +13,9 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^7.1.9",
     "morgan": "~1.6.1",
-    "mysql2": "^1.1.1",
+    "multer": "^1.2.0",
     "mysql": "^2.11.1",
+    "mysql2": "^1.1.1",
     "serve-favicon": "~2.3.0",
     "smart-id": "^0.4.0"
   }

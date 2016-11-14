@@ -61,6 +61,16 @@ in the body.
   - `userid` and 
   - `token`.
 
+- upload files, [POST] @ `/api/multimedia/` with 
+  - `userid`,
+  - `token` and
+  - `data` (the file to be uploaded).
+
+- download files, [GET] @ `/api/multimedia` with 
+  - `userid`,
+  - `token` and 
+  - `filepath` (without prefix "./data/", as a GET query parameter).
+
 ### API Responses
 
 Responses are in JSON format and have at least two fields:

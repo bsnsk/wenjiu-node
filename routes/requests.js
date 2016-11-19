@@ -145,8 +145,11 @@ router.post('/', userAuth, async (req, res, next) => {
   var text = req.body.text;
   var end_time = req.body.endtime;
 
+  console.log(req.body);
+  console.log({"title": title, "text": text});
   if (!typecheck.check(title, "string")
-    || !typecheck.check(text, "string")) {
+    || !typecheck.check(text, "string")
+    || !typecheck.check(endtime, "not_null")) {
     typecheck.report(res);
     return;
   }

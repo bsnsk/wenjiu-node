@@ -2,6 +2,8 @@ var express = require('express');
 var idgenerator = require('../helpers/idgenerator');
 var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
+var mysql = require('mysql2/promise');
+var mysqlconf = require('../.conf.json').mysql;
 var router = express.Router();
 
 /*
@@ -32,7 +34,7 @@ router.get('/', userAuth, (req, res, next) => {
 /* 
  * [GET] View a request 
  */
-router.get('/:request_id', userAuth, (req, res, next) => {
+router.get('/:request_id', userAuth, async (req, res, next) => {
   var request_id = parseInt(req.params.request_id);
   var userid = parseInt(req.headers.userid);
   if (!typecheck.check(request_id, "int")) {
@@ -43,7 +45,7 @@ router.get('/:request_id', userAuth, (req, res, next) => {
   db.query(
     'SELECT * FROM available_requests WHERE request_id=?',
     [request_id],
-    (err, rows, fields) => {
+    async (err, rows, fields) => {
       if (err) {
         console.log(err);
         return;
@@ -58,11 +60,21 @@ router.get('/:request_id', userAuth, (req, res, next) => {
           "status": "failure",
           "message": "request id has duplicates (probably a server error)"
         }));
-      else res.send(JSON.stringify({
-        "status": "success",
-        "message": "request fetched successfully.",
-        "content": rows[0]
-      }));
+      else {
+        let db = await mysql.createConnection(mysqlconf);
+        let [rows2, fields2] = await db.execute(
+          'SELECT response_id, actor_id, creation_time FROM available_responses WHERE request_id=?',
+          [rows[0]['request_id']]
+        );
+        res.send(JSON.stringify({
+          "status": "success",
+          "message": "request fetched successfully.",
+          "content": {
+                      "request_meta": rows[0],
+                      "responses": rows2 
+                    }
+        }));
+      }
   });
 });
 

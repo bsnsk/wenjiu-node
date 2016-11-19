@@ -149,7 +149,7 @@ router.post('/', userAuth, async (req, res, next) => {
   console.log({"title": title, "text": text});
   if (!typecheck.check(title, "string")
     || !typecheck.check(text, "string")
-    || !typecheck.check(endtime, "not_null")) {
+    || !typecheck.check(end_time, "int")) {
     typecheck.report(res);
     return;
   }
@@ -161,7 +161,7 @@ router.post('/', userAuth, async (req, res, next) => {
       title,
       text,
       Date.now(),
-      Date.parse(end_time),
+      end_time,
       userid,
     ];
   db.query(

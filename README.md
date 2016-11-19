@@ -31,7 +31,7 @@ in the body.
   - `token`,
   - `title`,
   - `text`, and 
-  - `end_time`.
+  - `endtime`.
 
 - view a request, [GET] @ `/api/requests/:request_id` with 
   - `userid`,
@@ -46,7 +46,7 @@ in the body.
   - `userid`, and
   - `token`.
 
-- publish a resposne, [POST] @ `/api/responses` with 
+- publish a response, [POST] @ `/api/responses` with 
   - `userid`,
   - `token`,
   - `text`, and 

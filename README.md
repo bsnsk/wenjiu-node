@@ -22,6 +22,10 @@ in the body.
   - `userid` (integer), and
   - `token` (string).
 
+- view basic information of a user, [GET] @ `/api/users/:user_id` with 
+  - `userid` and 
+  - `token`.
+
 - publish a request, [POST] @ `/api/requests` with 
   - `userid`,
   - `token`,

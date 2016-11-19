@@ -52,6 +52,45 @@ router.post('/', (req, res, next) => {
   });
 });
 
+/* 
+ * [GET] Get public information of a user 
+ */
+router.get('/:user_id', userAuth, (req, res, next) => {
+  var user_id = parseInt(req.params.user_id);
+  if (!typecheck.check(user_id, "int")) {
+    typecheck.report(res);
+    return;
+  }
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    'SELECT username, gender, rating, disabled FROM all_users WHERE userid=?',
+    [user_id],
+    async (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (rows.length == 0)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "user not found"
+        }));
+      else if (rows.length > 1)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "user id has duplicates (probably a server error)"
+        }));
+      else {
+        res.send(JSON.stringify({
+          "status": "success",
+          "message": "user fetched",
+          "content": rows[0]
+        }));
+      }
+    }
+  );
+});
+
 /*
  * [GET] View a list of requests 
  */

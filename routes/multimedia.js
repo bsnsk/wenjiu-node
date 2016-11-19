@@ -58,26 +58,39 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
 });
 
 router.get('/', userAuth, (req, res, next) => {
-  var filePath = req.query["filepath"];
+  var fileId = parseInt(req.query.fileid);
 
-  if (!typecheck.check(filePath, "string")) {
+  if (!typecheck.check(fileId, "int")) {
     typecheck.report(res);
     return;
   }
 
-  if (filePath.startsWith('../')) {
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "illegal path"
-    }));
-    return;
-  } 
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    'SELECT path FROM multimedia WHERE content_id=?',
+    [fileId],
+    (err, rows, fields) => {
+      if (rows.length == 0)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "file not found"
+        }));
+      else if (rows.length > 1)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "file id has duplicates (probably a server error)"
+        }));
+      else {
+        filePath = rows[0]['path'];
+        console.log({
+          "requesting": filePath,
+          "providing": path.join(__dirname, '../', filePath)
+        });
+        res.sendFile(path.join(__dirname, '../', filePath));
+      }
+    }
+  );
 
-  console.log({
-    "requesting": filePath,
-    "providing": path.join(__dirname, '../data', filePath)
-  });
-  res.sendFile(path.join(__dirname, '../data', filePath));
 });
 
 module.exports = router;

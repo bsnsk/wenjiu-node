@@ -65,15 +65,15 @@ in the body.
   - `userid` and 
   - `token`.
 
-- upload files, [POST] @ `/api/multimedia/` with 
+- upload a file, [POST] @ `/api/multimedia/` with 
   - `userid`,
   - `token` and
   - `data` (the file to be uploaded).
 
-- download files, [GET] @ `/api/multimedia` with 
+- download a file, [GET] @ `/api/multimedia` with 
   - `userid`,
   - `token` and 
-  - `filepath` (without prefix "./data/", as a GET query parameter).
+  - `fileid` (as a GET query parameter).
 
 ### API Responses
 

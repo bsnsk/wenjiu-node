@@ -2,6 +2,8 @@ var express = require('express');
 var idgenerator = require('../helpers/idgenerator');
 var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
+var mysql = require('mysql2/promise');
+var mysqlconf = require('../.conf.json').mysql;
 var router = express.Router();
 
 /*
@@ -116,10 +118,10 @@ router.delete('/:response_id', userAuth, (req, res, next) => {
  * [POST] Publish a response
  */
 router.post('/', userAuth, async (req, res, next) => {
-  var db = require('../helpers/db').alchpool;
   var userid = parseInt(req.headers.userid);
   var request_id = parseInt(req.body.request_id);
   var text = req.body.text;
+  var multimedia = JSON.parse(req.body.multimedia);
 
   if (!typecheck.check(text, "string")
     || !typecheck.check(request_id, "int")) {
@@ -127,60 +129,61 @@ router.post('/', userAuth, async (req, res, next) => {
     return;
   }
 
-  db.query(
+  console.log(req.body);
+  let db = await mysql.createConnection(mysqlconf);
+  let [rows, fields] = await db.execute(
     'SELECT request_id, end_time FROM available_requests WHERE ' +
     'request_id=?;',
-    request_id,
-    async (err, rows, fields) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (rows.length == 0)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "invalid request id"
-        }));
-      else if (rows.length > 1)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "duplicate request id"
-        }))
-      else {
-        let response_id = await idgenerator.genInt('response');
-        let response_info = 
-          [
-            response_id,
-            userid,
-            request_id,
-            text,
-            Date.now(),
-            rows[0]['end_time'],
-          ];
-        db.query(
-          'INSERT INTO available_responses ( ' +
-            '`response_id`, ' +
-            '`actor_id`, ' +
-            '`request_id`, ' +
-            '`text`, ' +
-            '`creation_time`, ' +
-            '`push_time`' +
-          ') VALUES (?, ?, ?, ?, ?, ?)',
-          response_info,
-          (err, rows, fields) => {
-            if (err) {
-              console.log(err);
-              return;
-            }
-            res.send(JSON.stringify({
-              "status": "success",
-              "message": "response published",
-              "responseid": response_id.toString()
-            }));
-          }
-        );
-      }
-    });
+    [request_id]
+  );
+  if (rows.length == 0)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "invalid request id"
+    }));
+  else if (rows.length > 1)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "duplicate request id"
+    }))
+  else {
+    let response_id = await idgenerator.genInt('response');
+    await db.execute(
+      'INSERT INTO available_responses ( ' +
+        '`response_id`, ' +
+        '`actor_id`, ' +
+        '`request_id`, ' +
+        '`text`, ' +
+        '`creation_time`, ' +
+        '`push_time`' +
+      ') VALUES (?, ?, ?, ?, ?, ?);',
+      [
+        response_id,
+        userid,
+        request_id,
+        text,
+        Date.now(),
+        rows[0]['end_time'],
+      ]
+    );
+    for (var i=0; i<multimedia.length; i++) {
+      await db.execute(
+        'INSERT INTO response_multimedia (' +
+          '`response_id`, ' +
+          '`multimedia_id` ' +
+        ') VALUES (?,?);',
+        [
+          response_id.toString(),
+          multimedia[i]
+        ]
+      );
+    }
+    res.send(JSON.stringify({
+      "status": "success",
+      "message": "response published",
+      "responseid": response_id.toString()
+    }));
+  }
 });
 
 module.exports = router;

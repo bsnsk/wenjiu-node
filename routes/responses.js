@@ -18,6 +18,7 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
   var db = require('../helpers/db').alchpool;
   db.query(
     'SELECT ' +
+      'r.response_id, ' +
       'r.request_id, ' +
       'u.nickname, ' +
       'u.figure_id, ' +
@@ -30,7 +31,7 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
       'ON r.actor_id=u.userid ' +
       'AND r.response_id=?;',
     [response_id], 
-    (err, rows, fields) => {
+    async (err, rows, fields) => {
       if (err) {
         console.log(err);
         return;
@@ -46,10 +47,18 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
           "message": "response id has duplicates (probably a server error)"
         }));
       else {
+        let conn = await mysql.createConnection(mysqlconf);
+        let [mrows, mfields] = await conn.execute(
+          'SELECT multimedia_id FROM response_multimedia WHERE response_id=?;',
+          [rows[0]['response_id']]
+        );
         res.send(JSON.stringify({
           "status": "success",
           "message": "response fetched successfully.",
-          "content": rows 
+          "content": {
+                      "response_content": rows[0],
+                      "multimedia": mrows
+                    }
         }));
       }
     }

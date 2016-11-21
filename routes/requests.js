@@ -66,11 +66,16 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
           'SELECT response_id, actor_id, creation_time FROM available_responses WHERE request_id=?',
           [rows[0]['request_id']]
         );
+        let [rows3, fields3] = await db.execute(
+          'SELECT multimedia_id FROM request_multimedia WHERE request_id=?',
+          [rows[0]['request_id']]
+        );
         res.send(JSON.stringify({
           "status": "success",
           "message": "request fetched successfully.",
           "content": {
                       "request_meta": rows[0],
+                      "multimedia": rows3,
                       "responses": rows2 
                     }
         }));
@@ -139,14 +144,13 @@ router.delete('/:request_id', userAuth, (req, res, next) => {
  * [POST] Publish a request 
  */
 router.post('/', userAuth, async (req, res, next) => {
-  var db = require('../helpers/db').alchpool;
   var userid = parseInt(req.headers.userid);
   var title = req.body.title;
   var text = req.body.text;
   var end_time = req.body.endtime;
+  var multimedia = JSON.parse(req.body.multimedia);
 
   console.log(req.body);
-  console.log({"title": title, "text": text});
   if (!typecheck.check(title, "string")
     || !typecheck.check(text, "string")
     || !typecheck.check(end_time, "int")) {
@@ -164,7 +168,8 @@ router.post('/', userAuth, async (req, res, next) => {
       end_time,
       userid,
     ];
-  db.query(
+  let db = await mysql.createConnection(mysqlconf);
+  let [rows, fields] = await db.execute(
     'INSERT INTO available_requests (' +
       '`request_id`,' + 
       '`title`, ' +
@@ -173,19 +178,25 @@ router.post('/', userAuth, async (req, res, next) => {
       '`end_time`, ' +
       '`publisher_id`' +
     ') VALUES (?, ?, ?, ?, ?, ?)',
-    request_info,
-    (err, rows, fields) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      res.send(JSON.stringify({
-        "status": "success",
-        "message": "request published",
-        "requestid": id.toString()
-      }));
-    }
+    request_info
   );
+  for (var i=0; i<multimedia.length; i++) {
+    let [rows, fields] = await db.execute(
+      'INSERT INTO request_multimedia (' +
+        '`request_id`, ' +
+        '`multimedia_id` ' +
+      ') VALUES (?,?)',
+      [
+        id.toString(),
+        multimedia[i]
+      ]
+    );
+  }
+  res.send(JSON.stringify({
+    "status": "success",
+    "message": "request published",
+    "requestid": id.toString()
+  }));
 });
 
 module.exports = router;

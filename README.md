@@ -32,6 +32,7 @@ in the body.
   - `title`,
   - `text`, and 
   - `endtime`.
+  - (optional) `multimedia` as a string of JSON array, e.g. "[1,2,3,4]"
 
 - view a request, [GET] @ `/api/requests/:request_id` with 
   - `userid`,

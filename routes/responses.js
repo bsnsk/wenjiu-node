@@ -5,6 +5,56 @@ var userAuth = require('../helpers/userAuth').authenticate;
 var router = express.Router();
 
 /*
+ * [GET] View a response 
+ */
+router.get('/:response_id', userAuth, async (req, res, next) => {
+  var response_id = parseInt(req.params.response_id);
+  if (!typecheck.check(response_id, "int")) {
+    typecheck.report(res);
+    return;
+  }
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    'SELECT ' +
+      'r.request_id, ' +
+      'u.nickname, ' +
+      'u.figure_id, ' +
+      'u.userid, ' +
+      'r.text, ' +
+      'r.creation_time, ' +
+      'r.push_time ' +
+    'FROM available_responses r ' +
+    'JOIN all_users u ' +
+      'ON r.actor_id=u.userid ' +
+      'AND r.response_id=?;',
+    [response_id], 
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (rows.length == 0)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "response not found"
+        }));
+      else if (rows.length > 1)
+        res.send(JSON.stringify({
+          "status": "failure",
+          "message": "response id has duplicates (probably a server error)"
+        }));
+      else {
+        res.send(JSON.stringify({
+          "status": "success",
+          "message": "response fetched successfully.",
+          "content": rows 
+        }));
+      }
+    }
+  );
+});
+
+/*
  * [DELETE] Delete a response 
  */
 router.delete('/:response_id', userAuth, (req, res, next) => {

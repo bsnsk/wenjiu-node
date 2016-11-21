@@ -53,6 +53,10 @@ in the body.
   - `text`, and 
   - `request_id`.
 
+- view a response, [GET] @ `/api/responses/:response_id` with 
+  - `userid`, 
+  - `token`.
+
 - delete a response, [DELETE] @ `/api/responses/:response_id` with 
   - `userid`,
   - `token`, and

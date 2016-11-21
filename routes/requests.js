@@ -13,9 +13,19 @@ router.get('/', userAuth, (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var db = require('../helpers/db').alchpool;
   db.query(
-    'SELECT * FROM available_requests ' +
-    'WHERE status IS NULL ' +
-    'ORDER BY end_time DESC ' + 
+    'SELECT ' +
+      'r.request_id, ' +
+      'u.nickname, ' +
+      'u.figure_id, ' +
+      'r.title, ' +
+      'r.text, ' +
+      'r.creation_time, ' +
+      'r.end_time ' +
+    'FROM available_requests r ' +
+    'JOIN all_users u ' + 
+    'ON r.status IS NULL ' +
+      'AND r.publisher_id = u.userid ' +
+    'ORDER BY r.end_time DESC ' + 
     'LIMIT 20;',
     (err, rows, fields) => {
       if (err) {
@@ -43,7 +53,19 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
   }
   var db = require('../helpers/db').alchpool;
   db.query(
-    'SELECT * FROM available_requests WHERE request_id=?',
+    'SELECT ' +
+      'r.request_id, ' +
+      'u.nickname, ' +
+      'u.figure_id, ' +
+      'u.userid, ' +
+      'r.title, ' +
+      'r.text, ' +
+      'r.creation_time, ' +
+      'r.end_time ' +
+    'FROM available_requests r ' +
+    'JOIN all_users u ' +
+      'ON r.request_id = ? ' +
+      'AND r.publisher_id = u.userid;',
     [request_id],
     async (err, rows, fields) => {
       if (err) {
@@ -63,7 +85,15 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
       else {
         let db = await mysql.createConnection(mysqlconf);
         let [rows2, fields2] = await db.execute(
-          'SELECT response_id, actor_id, creation_time FROM available_responses WHERE request_id=?',
+          'SELECT ' +
+            'r.response_id, ' +
+            'u.figure_id, ' +
+            'u.nickname, ' +
+            'r.creation_time ' +
+          'FROM available_responses r ' +
+          'JOIN all_users u ' +
+            'ON request_id=? ' +
+            'AND u.userid=r.actor_id;',
           [rows[0]['request_id']]
         );
         let [rows3, fields3] = await db.execute(

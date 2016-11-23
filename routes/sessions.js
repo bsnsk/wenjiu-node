@@ -86,12 +86,6 @@ router.delete('/', (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var token = req.headers.token;
 
-  if (!typecheck.check(userid, "int") 
-    || !typecheck.check(password, "string")) {
-    typecheck.report(res);
-    return;
-  }
-
   console.log({"logout" : {"userid": userid, "token": token}});
 
   db.query("SELECT userid, token FROM valid_tokens WHERE userid=?;",

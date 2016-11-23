@@ -115,7 +115,7 @@ router.get('/:user_id', userAuth, (req, res, next) => {
   }
   var db = require('../helpers/db').alchpool;
   db.query(
-    'SELECT username, gender, rating, disabled FROM all_users WHERE userid=?',
+    'SELECT username, nickname, gender, rating, disabled FROM all_users WHERE userid=?',
     [user_id],
     async (err, rows, fields) => {
       if (err) {

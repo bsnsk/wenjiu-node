@@ -21,7 +21,8 @@ router.post('/', (req, res, next) => {
 
   console.log({"user_login": {"username": username, "password": password}});
 
-  db.query("SELECT userid, passwordhash FROM all_users WHERE username=?;",
+  db.query('SELECT userid, passwordhash, nickname, figure_id ' +
+      'FROM all_users WHERE username=?;',
       [username], (err, rows, fields) => {
 
     if (err) {
@@ -62,7 +63,9 @@ router.post('/', (req, res, next) => {
           "status": "success",
           "message": "login",
           "userid": rows[0]['userid'],
-          "token": token 
+          "token": token,
+          "nickname": rows[0]['nickname'],
+          "figure_id": rows[0]['figure_id']
         }));
     }
     else if (rows[0]['passwordhash'] != password)

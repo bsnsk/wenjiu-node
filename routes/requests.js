@@ -178,7 +178,10 @@ router.post('/', userAuth, async (req, res, next) => {
   var title = req.body.title;
   var text = req.body.text;
   var end_time = req.body.endtime;
-  var multimedia = JSON.parse(req.body.multimedia);
+  var multimedia;
+  
+  if (req.body.multimedia != undefined)
+    JSON.parse(req.body.multimedia);
 
   console.log(req.body);
   if (!typecheck.check(title, "string")
@@ -210,6 +213,7 @@ router.post('/', userAuth, async (req, res, next) => {
     ') VALUES (?, ?, ?, ?, ?, ?)',
     request_info
   );
+  if (multimedia != undefined)
   for (var i=0; i<multimedia.length; i++) {
     let [rows, fields] = await db.execute(
       'INSERT INTO request_multimedia (' +

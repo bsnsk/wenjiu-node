@@ -130,7 +130,10 @@ router.post('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var request_id = parseInt(req.body.request_id);
   var text = req.body.text;
-  var multimedia = JSON.parse(req.body.multimedia);
+  var multimedia;
+   
+  if (multimedia != undefined)
+    multimedia = JSON.parse(req.body.multimedia);
 
   if (!typecheck.check(text, "string")
     || !typecheck.check(request_id, "int")) {
@@ -175,6 +178,7 @@ router.post('/', userAuth, async (req, res, next) => {
         rows[0]['end_time'],
       ]
     );
+    if (multimedia != undefined)
     for (var i=0; i<multimedia.length; i++) {
       await db.execute(
         'INSERT INTO response_multimedia (' +

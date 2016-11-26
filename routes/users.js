@@ -115,7 +115,16 @@ router.get('/:user_id', userAuth, (req, res, next) => {
   }
   var db = require('../helpers/db').alchpool;
   db.query(
-    'SELECT username, nickname, gender, rating, disabled FROM all_users WHERE userid=?',
+    `SELECT 
+      username, 
+      nickname, 
+      gender, 
+      signature, 
+      figure_id, 
+      rating, 
+      disabled 
+    FROM all_users 
+    WHERE userid=?`,
     [user_id],
     async (err, rows, fields) => {
       if (err) {
@@ -141,6 +150,56 @@ router.get('/:user_id', userAuth, (req, res, next) => {
       }
     }
   );
+});
+
+/*
+ * [PUT] Update User Profile 
+ */
+router.put('/:user_id', userAuth, (req, res, next) => {
+  var user_id = parseInt(req.params.user_id);
+  var actor_id = parseInt(req.headers.userid);
+  var infoStrings = [];
+  var subjects = ['gender', 'figure_id', 'nickname', 'signature'];
+  var subject_type = ['string', 'int', 'string', 'string'];
+
+  console.log({"update user": user_id, "by": actor_id, "info": req.body});
+
+  for (var i=0; i<subjects.length; i++)
+    if (req.body[subjects[i]] != undefined) {
+      if (subject_type[i] != 'string')
+        infoStrings.push(subjects[i] + '=' + req.body[subjects[i]])
+      else 
+        infoStrings.push(subjects[i] + "='" + req.body[subjects[i]] + "'")
+    }
+
+  var setupString = infoStrings.join(',');
+  console.log(setupString);
+
+  if (!typecheck.check(user_id, "int")
+    || user_id != actor_id) {
+      typecheck.report(res);
+      return;
+  }
+
+  var db = require('../helpers/db').alchpool;
+  db.query(
+    ` UPDATE all_users
+      SET `
+        + setupString +
+    ` WHERE userid=?;`,
+    [user_id],
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      res.send(JSON.stringify({
+          "status": "success",
+          "message": "user profile updated"
+      }));
+    }
+  );
+
 });
 
 module.exports = router;

@@ -22,9 +22,17 @@ in the body.
   - `userid` (integer), and
   - `token` (string).
 
-- view basic information of a user, [GET] @ `/api/users/:user_id` with 
+- view basic profile of a user, [GET] @ `/api/users/:user_id` with 
   - `userid` and 
   - `token`.
+
+- update profile of a user, [PUT] @ `/api/users/:user_id` with 
+  - `userid`,
+  - `token`, and 
+  - (optional) `gender` (`'female'` or `'male'`),
+  - (optional) `nickname` (`string`),
+  - (optional) `signature` (`string` within length of 256),
+  - (optional) `figure_id` (`int`),
 
 - publish a request, [POST] @ `/api/requests` with 
   - `userid`,

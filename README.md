@@ -34,6 +34,12 @@ in the body.
   - (optional) `signature` (`string` within length of 256),
   - (optional) `figure_id` (`int`),
 
+- reset password for a user, [POST] @ `/api/users/:user_id/reset_password` with 
+  - `userid`,
+  - `token`, 
+  - `old_password`, and 
+  - `new_password`.
+
 - publish a request, [POST] @ `/api/requests` with 
   - `userid`,
   - `token`,

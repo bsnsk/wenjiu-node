@@ -2,6 +2,8 @@ var express = require('express');
 var typecheck = require('../helpers/typecheck');
 var idgenerator = require('../helpers/idgenerator');
 var userAuth = require('../helpers/userAuth').authenticate;
+var mysql = require('mysql2/promise');
+var mysqlconf = require('../.conf.json').mysql;
 var router = express.Router();
 
 /*
@@ -199,6 +201,62 @@ router.put('/:user_id', userAuth, (req, res, next) => {
       }));
     }
   );
+
+});
+
+/*
+ * [POST] Reset password 
+ */
+router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
+  var user_id = parseInt(req.params.user_id);
+  var actor_id = parseInt(req.headers.userid);
+  var oldPassword = req.body['old_password'];
+  var newPassword = req.body['new_password'];
+
+  console.log(`password change for user ${user_id} by ${actor_id}`);
+
+  if (!typecheck.check(user_id, "int")
+    || user_id != actor_id) {
+      typecheck.report(res);
+      return;
+  }
+
+  let db = await mysql.createConnection(mysqlconf);
+  let [rows, fields] = await db.execute(
+    ` SELECT 
+        passwordhash
+      FROM all_users
+      WHERE userid=?;`,
+    [user_id]
+  );
+  if (rows.length == 0)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request not found"
+    }));
+  else if (rows.length > 1)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request id has duplicates (probably a server error)"
+    }));
+  else if (rows[0]['passwordhash'] != oldPassword)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "Old password incorrect"
+    }));
+  else {
+    console.log('old password verified');
+    let [rows, fields] = await db.execute(
+      ` UPDATE all_users
+        SET passwordhash=?
+        WHERE userid=?;`,
+      [newPassword, user_id]
+    );
+    res.send(JSON.stringify({
+      "status": "success",
+      "message": "user password changed"
+    }));
+  }
 
 });
 

@@ -13,12 +13,22 @@ var upload = multer({ dest: 'data/' })
  */
 router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   var db = require('../helpers/db').alchpool;
-  var filetype = req.body.filetype;
+  var nameSplit = req.file.originalname.split('.');
+  var filetype = nameSplit[nameSplit.length-1];
   var userid = parseInt(req.headers.userid);
+
+  console.log({"file": req.file, "filetype": filetype});
 
   if (!typecheck.check(filetype, "string")) {
     typecheck.report(res);
     return;
+  }
+
+  if (req.file.size > 5242880) { // 5MB
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "file larger than 5MB"
+    }));
   }
 
   console.log(req.file.originalname);

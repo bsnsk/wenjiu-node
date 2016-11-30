@@ -13,20 +13,23 @@ router.get('/', userAuth, (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var db = require('../helpers/db').alchpool;
   db.query(
-    'SELECT ' +
-      'r.request_id, ' +
-      'u.nickname, ' +
-      'u.figure_id, ' +
-      'r.title, ' +
-      'r.text, ' +
-      'r.creation_time, ' +
-      'r.end_time ' +
-    'FROM available_requests r ' +
-    'JOIN all_users u ' + 
-    'ON r.status IS NULL ' +
-      'AND r.publisher_id = u.userid ' +
-    'ORDER BY r.end_time DESC ' + 
-    'LIMIT 20;',
+    `SELECT
+      r.request_id,
+      u.nickname,
+      u.figure_id,
+      r.title,
+      r.text,
+      r.creation_time,
+      r.end_time
+    FROM available_requests r
+    JOIN all_users u 
+    ON 
+      r.status IS NULL
+      AND r.publisher_id = u.userid
+      AND r.end_time > ?
+    ORDER BY r.end_time DESC 
+    LIMIT 20;`,
+    [Date.now()],
     (err, rows, fields) => {
       if (err) {
         console.log(err);
@@ -186,7 +189,8 @@ router.post('/', userAuth, async (req, res, next) => {
   console.log(req.body);
   if (!typecheck.check(title, "string")
     || !typecheck.check(text, "string")
-    || !typecheck.check(end_time, "int")) {
+    || !typecheck.check(end_time, "int")
+    || end_time <= Date.now()) {
     typecheck.report(res);
     return;
   }

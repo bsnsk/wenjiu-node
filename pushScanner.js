@@ -1,5 +1,5 @@
-var mysql = require('mysql2/promise');
 var mysqlconf = require('./.conf.json').mysql;
+var pool = require('mysql2/promise').createPool(mysqlconf);
 var schedule = require('node-schedule');
 var http = require('http');
 
@@ -63,7 +63,7 @@ async function scheduleScanner() {
           'time': new Date(),
           'currentTime(ms)': currentTime
         });
-        let conn = await mysql.createConnection(mysqlconf);
+        let conn = await pool.getConnection(pool);
         let [rows, fields] = await conn.execute(
           ` SELECT 
               req.publisher_id AS userid,
@@ -88,7 +88,7 @@ async function scheduleScanner() {
           console.log({"pushing": {"alias": alias, "message": message}});
           postToPushNotiPlat(alias, message);
         }
-        await conn.execute(
+        conn.execute(
           ` UPDATE available_responses 
             SET status='pushed'
             WHERE 
@@ -96,7 +96,8 @@ async function scheduleScanner() {
               AND push_time <= ?
               AND status IS NULL;
           `,
-          [currentTime, currentTime + timeInterval * 2]
+          [currentTime, currentTime + timeInterval * 2],
+          conn.release()
         );
     }); 
 }

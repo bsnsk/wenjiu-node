@@ -4,15 +4,16 @@ var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
 var mysql = require('mysql2/promise');
 var mysqlconf = require('../.conf.json').mysql;
+var alchpool = require('../helpers/db').alchpool;
 var router = express.Router();
 
 /*
  * [GET] View a list of requests 
  */
-router.get('/', userAuth, (req, res, next) => {
+router.get('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
-  var db = require('../helpers/db').alchpool;
-  db.query(
+  let conn = await alchpool.getConnection();
+  let [rows, fields] = await conn.execute(
     `SELECT
       r.request_id,
       u.nickname,
@@ -30,18 +31,13 @@ router.get('/', userAuth, (req, res, next) => {
     ORDER BY r.end_time DESC 
     LIMIT 20;`,
     [Date.now()],
-    (err, rows, fields) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      res.send(JSON.stringify({
-        "status": "success",
-        "message": "fetch recent requests",
-        "content": rows 
-      }));
-    }
+    conn.release()
   );
+  res.send(JSON.stringify({
+    "status": "success",
+    "message": "fetch recent requests",
+    "content": rows 
+  }));
 });
 
 /* 
@@ -54,8 +50,8 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
     typecheck.report(res);
     return;
   }
-  var db = require('../helpers/db').alchpool;
-  db.query(
+  let conn = await alchpool.getConnection();
+  let [rows, fields] = await conn.execute(
     'SELECT ' +
       'r.request_id, ' +
       'u.nickname, ' +
@@ -69,58 +65,57 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
     'JOIN all_users u ' +
       'ON r.request_id = ? ' +
       'AND r.publisher_id = u.userid;',
-    [request_id],
-    async (err, rows, fields) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (rows.length == 0)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "request not found"
-        }));
-      else if (rows.length > 1)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "request id has duplicates (probably a server error)"
-        }));
-      else {
-        let db = await mysql.createConnection(mysqlconf);
-        let [rows2, fields2] = await db.execute(
-          'SELECT ' +
-            'r.response_id, ' +
-            'u.figure_id, ' +
-            'u.nickname, ' +
-            'r.creation_time ' +
-          'FROM available_responses r ' +
-          'JOIN all_users u ' +
-            'ON request_id=? ' +
-            'AND u.userid=r.actor_id;',
-          [rows[0]['request_id']]
-        );
-        let [rows3, fields3] = await db.execute(
-          'SELECT multimedia_id FROM request_multimedia WHERE request_id=?',
-          [rows[0]['request_id']]
-        );
-        res.send(JSON.stringify({
-          "status": "success",
-          "message": "request fetched successfully.",
-          "content": {
-                      "request_meta": rows[0],
-                      "multimedia": rows3,
-                      "responses": rows2 
-                    }
-        }));
-      }
-  });
+    [request_id]
+  );
+  if (rows.length == 0) {
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request not found"
+    }));
+    conn.release();
+  }
+  else if (rows.length > 1) {
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request id has duplicates (probably a server error)"
+    }));
+    conn.release();
+  }
+  else {
+    let [rows2, fields2] = await conn.execute(
+      'SELECT ' +
+        'r.response_id, ' +
+        'u.figure_id, ' +
+        'u.nickname, ' +
+        'r.creation_time ' +
+      'FROM available_responses r ' +
+      'JOIN all_users u ' +
+        'ON request_id=? ' +
+        'AND u.userid=r.actor_id;',
+      [rows[0]['request_id']]
+    );
+    let [rows3, fields3] = await conn.execute(
+      'SELECT multimedia_id FROM request_multimedia WHERE request_id=?',
+      [rows[0]['request_id']],
+      conn.release()
+    );
+    res.send(JSON.stringify({
+      "status": "success",
+      "message": "request fetched successfully.",
+      "content": {
+                  "request_meta": rows[0],
+                  "multimedia": rows3,
+                  "responses": rows2 
+                }
+    }));
+  }
 });
 
 
 /* 
  * [DELETE] Delete a request 
  */
-router.delete('/:request_id', userAuth, (req, res, next) => {
+router.delete('/:request_id', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var request_id = parseInt(req.params.request_id);
 
@@ -129,47 +124,45 @@ router.delete('/:request_id', userAuth, (req, res, next) => {
     return;
   }
 
-  var db = require('../helpers/db').alchpool;
-  db.query('SELECT publisher_id, status FROM available_requests WHERE request_id=?;',
+  let conn = await alchpool.getConnection();
+  let [rows, fields] = await conn.execute(
+    'SELECT publisher_id, status FROM available_requests WHERE request_id=?;',
     [request_id],
-    (err, rows, fields) => {
-      console.log(rows);
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (rows.length == 0)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "request not found"
-        }));
-      else if (rows.length > 1)
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "request id has duplicates (probably a server error)"
-        }));
-      else if (userid != parseInt(rows[0]['publisher_id']))
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "this request cannot be deleted unless by its publisher"
-        }));
-      else if (rows[0]['status'] == 'deleted')
-        res.send(JSON.stringify({
-          "status": "failure",
-          "message": "request already deleted"
-        }));
-      else {
-        db.query("UPDATE `available_requests` SET `status` = 'deleted'" +
-          "WHERE request_id=?", [request_id], (err, rows, fields) => {
-            if (err)
-              console.log(err);
-            res.send(JSON.stringify({
-              "status": "success",
-              "message": "request deleted successfully.",
-            }));
-          });
-      }
-    });
+    conn.release()
+  );
+  if (rows.length == 0)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request not found"
+    }));
+  else if (rows.length > 1)
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request id has duplicates (probably a server error)"
+    }));
+  else if (userid != parseInt(rows[0]['publisher_id']))
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "this request cannot be deleted unless by its publisher"
+    }));
+  else if (rows[0]['status'] == 'deleted')
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "request already deleted"
+    }));
+  else {
+    let conn = await alchpool.getConnection();
+    let [rows, fields] = await conn.execute(
+      "UPDATE `available_requests` SET `status` = 'deleted'" +
+      "WHERE request_id=?", 
+      [request_id],
+      conn.release()
+    ); 
+    res.send(JSON.stringify({
+      "status": "success",
+      "message": "request deleted successfully.",
+    }));
+  }
 });
 
 
@@ -205,8 +198,8 @@ router.post('/', userAuth, async (req, res, next) => {
       end_time,
       userid,
     ];
-  let db = await mysql.createConnection(mysqlconf);
-  let [rows, fields] = await db.execute(
+  let conn = await alchpool.getConnection();
+  let [rows, fields] = await conn.execute(
     'INSERT INTO available_requests (' +
       '`request_id`,' + 
       '`title`, ' +
@@ -219,7 +212,7 @@ router.post('/', userAuth, async (req, res, next) => {
   );
   if (multimedia != undefined)
   for (var i=0; i<multimedia.length; i++) {
-    let [rows, fields] = await db.execute(
+    let [rows, fields] = await conn.execute(
       'INSERT INTO request_multimedia (' +
         '`request_id`, ' +
         '`multimedia_id` ' +
@@ -235,6 +228,7 @@ router.post('/', userAuth, async (req, res, next) => {
     "message": "request published",
     "requestid": id.toString()
   }));
+  conn.release();
 });
 
 module.exports = router;

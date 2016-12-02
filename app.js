@@ -5,6 +5,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var options = require('./.conf.json').mysql;
+var dbPool = require('./helpers/db').init("alchpool", options);
+console.log(dbPool);
+
 var routes = require('./routes/index');
 var requests = require('./routes/requests');
 var responses = require('./routes/responses');
@@ -13,11 +17,6 @@ var multimedia = require('./routes/multimedia');
 var sessions = require('./routes/sessions');
 
 var test = require('./routes/test');
-
-var options = require('./.conf.json').mysql;
-options["connectionLimit"] = 10;
-console.log(options);
-var db = require('./helpers/db').init("alchpool", options);
 
 var app = express();
 

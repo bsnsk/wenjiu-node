@@ -63,7 +63,7 @@ async function scheduleScanner() {
           'time': new Date(),
           'currentTime(ms)': currentTime
         });
-        let conn = await pool.getConnection(pool);
+        let conn = await pool.getConnection();
         let [rows, fields] = await conn.execute(
           ` SELECT 
               req.publisher_id AS userid,

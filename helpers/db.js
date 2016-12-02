@@ -1,4 +1,4 @@
-var mysql = require('mysql');
+var mysql = require('mysql2/promise');
 
 module.exports = {
     init: function(name, options) {

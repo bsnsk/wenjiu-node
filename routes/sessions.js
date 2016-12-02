@@ -47,7 +47,7 @@ router.post('/', async (req, res, next) => {
       "timestamp": new Date()
     },  userconf['private_key']);
 
-    let [rows, fields] = await conn.execute(
+    await conn.execute(
       "INSERT INTO valid_tokens (`userid`, `token`) VALUES (?, ?);",
       [rows[0]['userid'].toString(), token]
     );

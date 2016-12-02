@@ -22,6 +22,7 @@ module.exports = {
         [id, type]);
       console.log({'generate new id':id, 'type': type});
     }
+    db.end();
     return id;
   } 
 }

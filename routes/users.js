@@ -2,8 +2,6 @@ var express = require('express');
 var typecheck = require('../helpers/typecheck');
 var idgenerator = require('../helpers/idgenerator');
 var userAuth = require('../helpers/userAuth').authenticate;
-var mysql = require('mysql2/promise');
-var mysqlconf = require('../.conf.json').mysql;
 var alchpool = require('../helpers/db').alchpool;
 var router = express.Router();
 

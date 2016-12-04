@@ -49,12 +49,33 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/requests', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
+  var cursorCreationTime = req.query.last_time;
+  var creationTimeFilter;
+  if (cursorCreationTime == undefined 
+    || parseInt(cursorCreationTime) == undefined )
+    creationTimeFilter = "";
+  else {
+    var cursorInt = parseInt(cursorCreationTime);
+    creationTimeFilter = `AND creation_time < ${cursorInt}`;
+  }
+
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    'SELECT * FROM available_requests ' +
-    'WHERE publisher_id=? ' +
-    'ORDER BY end_time DESC ' + 
-    'LIMIT 20;',
+    ` SELECT 
+        request_id,
+        publisher_id,
+        title,
+        text,
+        creation_time,
+        end_time,
+        status
+      FROM available_requests
+      WHERE 
+        publisher_id=?
+    ` + creationTimeFilter +
+    ` ORDER BY creation_time DESC
+      LIMIT 20;
+    `,
     [userid],
     conn.release()
   );

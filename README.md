@@ -84,6 +84,10 @@ in the body.
 - view request history, [GET] @ `/api/users/requests` with 
   - `userid` and 
   - `token`.
+  - (optional) `last_time` , a timestamp in ms indicating used as a cursor for 
+    request creation time. e.g. `/api/users/requests?last_time=1480832617296`.
+    If provided with this parameter, the server will only send back requests 
+    created in prior to this time.
 
 - view response history, [GET] @ `/api/users/responses` with 
   - `userid` and 

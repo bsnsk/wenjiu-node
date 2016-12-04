@@ -60,6 +60,10 @@ in the body.
 - view recent requests, [GET] @ `/api/requests` with 
   - `userid`, and
   - `token`.
+  - (optional) `last_time` , a timestamp in ms indicating used as a cursor for 
+    request creation time. e.g. `/api/requests?last_time=1480832617296`.
+    If provided with this parameter, the server will only send back requests 
+    created in prior to this time.
 
 - publish a response, [POST] @ `/api/responses` with 
   - `userid`,

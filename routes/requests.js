@@ -10,9 +10,21 @@ var router = express.Router();
  */
 router.get('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
+  var cursorCreationTime = req.query.last_time;
+  var creationTimeFilter;
+
+  if (cursorCreationTime == undefined 
+    || parseInt(cursorCreationTime) == undefined )
+    creationTimeFilter = "";
+  else {
+    var cursorInt = parseInt(cursorCreationTime);
+    creationTimeFilter = `AND r.creation_time < ${cursorInt}`;
+  }
+
+  console.log({'creation time filter': creationTimeFilter});
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    `SELECT
+  ` SELECT
       r.request_id,
       u.nickname,
       u.figure_id,
@@ -26,7 +38,8 @@ router.get('/', userAuth, async (req, res, next) => {
       r.status IS NULL
       AND r.publisher_id = u.userid
       AND r.end_time > ?
-    ORDER BY r.end_time DESC 
+  ` + creationTimeFilter +
+  ` ORDER BY r.creation_time DESC 
     LIMIT 20;`,
     [Date.now()],
     conn.release()

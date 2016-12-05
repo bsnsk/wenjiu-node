@@ -29,8 +29,8 @@ router.get('/', userAuth, async (req, res, next) => {
       u.nickname,
       u.figure_id,
       IF (
-        LENGTH(r.title) > 18, 
-        CONCAT(LEFT(r.title, 15), '...'),
+        CHARACTER_LENGTH(r.title) > 30, 
+        CONCAT(LEFT(r.title, 30), '...'),
         r.title
       ) AS title,
       ' ' AS text,
@@ -104,8 +104,8 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
           u.nickname,
           r.creation_time,
           IF (
-            LENGTH(r.text) > 18, 
-            CONCAT(LEFT(r.text, 15), '...'),
+            CHARACTER_LENGTH(r.text) > 30, 
+            CONCAT(LEFT(r.text, 30), '...'),
             r.text
           ) AS text
         FROM available_responses r

@@ -65,8 +65,8 @@ router.get('/requests', userAuth, async (req, res, next) => {
         request_id,
         publisher_id,
         IF (
-          LENGTH(title) > 18, 
-          CONCAT(LEFT(title, 15), '...'),
+          CHARACTER_LENGTH(title) > 30, 
+          CONCAT(LEFT(title, 30), '...'),
           title 
         ) AS title,
         ' ' AS text,

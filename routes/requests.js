@@ -14,7 +14,7 @@ router.get('/', userAuth, async (req, res, next) => {
   var creationTimeFilter;
 
   if (cursorCreationTime == undefined 
-    || parseInt(cursorCreationTime) == undefined )
+    || isNaN(parseInt(cursorCreationTime)) )
     creationTimeFilter = "";
   else {
     var cursorInt = parseInt(cursorCreationTime);

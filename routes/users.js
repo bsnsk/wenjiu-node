@@ -52,7 +52,7 @@ router.get('/requests', userAuth, async (req, res, next) => {
   var cursorCreationTime = req.query.last_time;
   var creationTimeFilter;
   if (cursorCreationTime == undefined 
-    || parseInt(cursorCreationTime) == undefined )
+    || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
     var cursorInt = parseInt(cursorCreationTime);

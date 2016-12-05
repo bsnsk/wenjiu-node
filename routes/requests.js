@@ -28,8 +28,12 @@ router.get('/', userAuth, async (req, res, next) => {
       r.request_id,
       u.nickname,
       u.figure_id,
-      r.title,
-      r.text,
+      IF (
+        LENGTH(r.title) > 18, 
+        CONCAT(LEFT(r.title, 15), '...'),
+        r.title
+      ) AS title,
+      ' ' AS text,
       r.creation_time,
       r.end_time
     FROM available_requests r
@@ -94,15 +98,21 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
   }
   else {
     let [rows2, fields2] = await conn.execute(
-      'SELECT ' +
-        'r.response_id, ' +
-        'u.figure_id, ' +
-        'u.nickname, ' +
-        'r.creation_time ' +
-      'FROM available_responses r ' +
-      'JOIN all_users u ' +
-        'ON request_id=? ' +
-        'AND u.userid=r.actor_id;',
+      ` SELECT
+          r.response_id,
+          u.figure_id,
+          u.nickname,
+          r.creation_time,
+          IF (
+            LENGTH(r.text) > 18, 
+            CONCAT(LEFT(r.text, 15), '...'),
+            r.text
+          ) AS text
+        FROM available_responses r
+        JOIN all_users u
+          ON request_id = ?
+          AND u.userid = r.actor_id;
+      `,
       [rows[0]['request_id']]
     );
     let [rows3, fields3] = await conn.execute(

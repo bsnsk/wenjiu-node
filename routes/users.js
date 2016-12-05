@@ -64,8 +64,12 @@ router.get('/requests', userAuth, async (req, res, next) => {
     ` SELECT 
         request_id,
         publisher_id,
-        title,
-        text,
+        IF (
+          LENGTH(title) > 18, 
+          CONCAT(LEFT(title, 15), '...'),
+          title 
+        ) AS title,
+        ' ' AS text,
         creation_time,
         end_time,
         status

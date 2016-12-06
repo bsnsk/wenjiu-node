@@ -23,8 +23,16 @@ router.post('/', async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-      'SELECT userid, passwordhash, nickname, figure_id ' +
-      'FROM all_users WHERE username=?;',
+      ` SELECT 
+          userid, 
+          passwordhash, 
+          nickname,
+          gender,
+          signature, 
+          figure_id
+        FROM all_users 
+        WHERE username=?;
+      `,
       [username]
   );
   if (rows.length > 1)
@@ -57,6 +65,8 @@ router.post('/', async (req, res, next) => {
       "userid": rows[0]['userid'],
       "token": token,
       "nickname": rows[0]['nickname'],
+      "gender": rows[0]['gender'],
+      "signature": rows[0]['signature'],
       "figure_id": rows[0]['figure_id']
     }));
   }

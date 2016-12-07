@@ -62,22 +62,25 @@ router.get('/requests', userAuth, async (req, res, next) => {
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
     ` SELECT 
-        request_id,
-        publisher_id,
+        r.request_id,
+        u.nickname,
+        u.figure_id,
         IF (
-          CHARACTER_LENGTH(title) > 30, 
-          CONCAT(LEFT(title, 30), '...'),
-          title 
+          CHARACTER_LENGTH(r.title) > 30, 
+          CONCAT(LEFT(r.title, 30), '...'),
+          r.title 
         ) AS title,
         ' ' AS text,
-        creation_time,
-        end_time,
-        status
-      FROM available_requests
-      WHERE 
-        publisher_id=?
+        r.creation_time,
+        r.end_time,
+        r.status
+      FROM available_requests r
+      JOIN all_users u
+      ON
+        r.publisher_id = ?
+        AND r.publisher_id = u.userid 
     ` + creationTimeFilter +
-    ` ORDER BY creation_time DESC
+    ` ORDER BY r.creation_time DESC
       LIMIT 20;
     `,
     [userid],

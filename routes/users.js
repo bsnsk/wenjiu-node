@@ -66,11 +66,15 @@ router.get('/requests', userAuth, async (req, res, next) => {
         u.nickname,
         u.figure_id,
         IF (
-          CHARACTER_LENGTH(r.title) > 30, 
-          CONCAT(LEFT(r.title, 30), '...'),
+          CHARACTER_LENGTH(r.title) > 20, 
+          CONCAT(LEFT(r.title, 20), '...'),
           r.title 
         ) AS title,
-        ' ' AS text,
+        IF (
+          CHARACTER_LENGTH(r.text) > 100, 
+          CONCAT(LEFT(r.text, 100), '...'),
+          r.text
+        ) AS text,
         r.creation_time,
         r.end_time,
         r.status

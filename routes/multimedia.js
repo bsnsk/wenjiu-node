@@ -63,8 +63,12 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   }));
 });
 
+/*
+ * [GET] Download a multimedia file
+ */
 router.get('/', userAuth, async (req, res, next) => {
   var fileId = parseInt(req.query.fileid);
+  var imageonly = req.headers.imageonly;
 
   if (!typecheck.check(fileId, "int")) {
     typecheck.report(res);
@@ -73,7 +77,7 @@ router.get('/', userAuth, async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    'SELECT path FROM multimedia WHERE content_id=?',
+    'SELECT path, content_type FROM multimedia WHERE content_id=?',
     [fileId],
     conn.release()
   );
@@ -91,9 +95,19 @@ router.get('/', userAuth, async (req, res, next) => {
     filePath = rows[0]['path'];
     console.log({
       "requesting": filePath,
-      "providing": path.join(__dirname, '../', filePath)
+      "providing": path.join(__dirname, '../', filePath),
+      "image-only": imageonly
     });
-    res.sendFile(path.join(__dirname, '../', filePath));
+    res.append('Multimedia-Type', rows[0]['content_type'])
+    if (imageonly != 'yes' || rows[0]['content_type'] == 'IMG') {
+      res.sendFile(path.join(__dirname, '../', filePath));
+    }
+    else {
+      res.send(JSON.stringify({
+        "status": "success",
+	"message": "multimedia file not sent back"
+      }))
+    }
   }
 });
 

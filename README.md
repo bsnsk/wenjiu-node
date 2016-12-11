@@ -97,11 +97,33 @@ in the body.
   - `userid`,
   - `token` and
   - `data` (the file to be uploaded).
+  - Hint: make sure the file extension is one of `IMG`, `VID`, or `SND`, because
+  these will be the identifier for the multimedia types (images, videos, or sounds).
 
 - download a file, [GET] @ `/api/multimedia` with 
   - `userid`,
   - `token` and 
   - `fileid` (as a GET query parameter).
+  - (optional) In the header if there is `'imageonly': 'yes'`, then file content will be 
+  sent if and only if this file is an image, i.e. with an extension as `IMG`.
+  - Hint: For responses, there will be an entry in the header of 
+`'Multimedia-Type': FILE_EXTENTION`. An example of response header is below.
+
+```
+200, OK
+Date: Sun, 11 Dec 2016 07:32:00 GMT
+Last-Modified: Wed, 07 Dec 2016 16:37:20 GMT
+Server: Apache/2.4.7 (Ubuntu)
+X-Powered-By: Express
+ETag: W/"ae18-158da258188"
+Content-Type: application/octet-stream
+Multimedia-Type: jpg
+Cache-Control: public, max-age=0
+Connection: Keep-Alive
+Accept-Ranges: bytes
+Keep-Alive: timeout=5, max=100
+Content-Length: 44568
+```
 
 ### API Responses
 

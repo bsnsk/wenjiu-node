@@ -28,11 +28,7 @@ router.get('/', userAuth, async (req, res, next) => {
       r.request_id,
       u.nickname,
       u.figure_id,
-      IF (
-        CHARACTER_LENGTH(r.title) > 20, 
-        CONCAT(LEFT(r.title, 20), '...'),
-        r.title
-      ) AS title,
+      ' ' AS title,
       IF (
         CHARACTER_LENGTH(r.text) > 100, 
         CONCAT(LEFT(r.text, 100), '...'),
@@ -77,7 +73,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
       'u.nickname, ' +
       'u.figure_id, ' +
       'u.userid, ' +
-      'r.title, ' +
+      "' ' AS title, " +
       'r.text, ' +
       'r.creation_time, ' +
       'r.end_time ' +

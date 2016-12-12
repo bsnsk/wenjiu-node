@@ -43,7 +43,7 @@ in the body.
 - publish a request, [POST] @ `/api/requests` with 
   - `userid`,
   - `token`,
-  - `title`,
+  - `title`, (`title` is **DEPRECATED** and should be ignored)
   - `text`, and 
   - `endtime`.
   - (optional) `multimedia` as a string of JSON array, e.g. "[1,2,3,4]"
@@ -92,6 +92,12 @@ in the body.
 - view response history, [GET] @ `/api/users/responses` with 
   - `userid` and 
   - `token`.
+
+- view user history (both requests and responses), [GET] @ `/api/users/history`
+  with 
+  - `userid`, and 
+  - `token`.
+  - (optional) `last_time`, as is stated above in request history API.
 
 - upload a file, [POST] @ `/api/multimedia/` with 
   - `userid`,

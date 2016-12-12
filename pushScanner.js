@@ -84,7 +84,7 @@ async function scheduleScanner() {
         console.log(rows);
         for (var i=0; i<rows.length; i++) {
           var alias = rows[i].userid.toString();
-          var message = JSON.stringify(rows[i]);
+          var message = '"response_id":' + rows[i].response_id;
           console.log({"pushing": {"alias": alias, "message": message}});
           postToPushNotiPlat(alias, message);
         }

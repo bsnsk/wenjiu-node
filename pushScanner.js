@@ -13,10 +13,6 @@ function postToPushNotiPlat(alias, message){
     'seckey': seckey,
     'alias': alias,
     'msg': message,
-    'opts': {
-      'time_to_live': '604800',
-      'qos': '1'
-    }
   });
   var options = {
     host: 'rest.yunba.io',

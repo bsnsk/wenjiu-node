@@ -206,13 +206,15 @@ router.post('/', userAuth, async (req, res, next) => {
     multimedia = JSON.parse(req.body.multimedia);
 
   console.log(req.body);
-  if (!typecheck.check(title, "string")
-    || !typecheck.check(text, "string")
+  if (!typecheck.check(text, "string")
     || !typecheck.check(end_time, "int")
     || end_time <= Date.now()) {
     typecheck.report(res);
     return;
   }
+
+  if (title == undefined)
+    title = '';
 
   let id = await idgenerator.genInt('request');
   let request_info = 

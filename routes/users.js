@@ -136,7 +136,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
 
     (SELECT 
         'response' AS item_type,
-        r.response_id,
+        r.response_id AS item_id,
         u.nickname,
         u.figure_id,
         ' ' AS title,
@@ -164,7 +164,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
   );
   res.send(JSON.stringify({
     "status": "success",
-    "message": "fetch user requests",
+    "message": "fetch user highlights",
     "content": rows 
   }));
 });
@@ -211,7 +211,7 @@ router.get('/history', userAuth, async (req, res, next) => {
 
     (SELECT 
         'response' AS item_type,
-        r.response_id,
+        r.response_id AS item_id,
         u.nickname,
         u.figure_id,
         ' ' AS title,

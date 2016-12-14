@@ -119,7 +119,7 @@ router.post('/', userAuth, async (req, res, next) => {
   var text = req.body.text;
   var multimedia;
    
-  if (multimedia != undefined)
+  if (req.body.multimedia != undefined)
     multimedia = JSON.parse(req.body.multimedia);
 
   if (!typecheck.check(text, "string")

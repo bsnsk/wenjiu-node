@@ -9,6 +9,8 @@
 `userid` and `token` are routinely in the headers while others should be sent 
 in the body.
 
+#### User and session
+
 - user registration, [POST] @ `/api/users` with 
   - `username` (string with length at most 30),
   - `password`,
@@ -40,6 +42,8 @@ in the body.
   - `old_password`, and 
   - `new_password`.
 
+#### Request
+
 - publish a request, [POST] @ `/api/requests` with 
   - `userid`,
   - `token`,
@@ -65,6 +69,8 @@ in the body.
     If provided with this parameter, the server will only send back requests 
     created in prior to this time.
 
+#### Response
+
 - publish a response, [POST] @ `/api/responses` with 
   - `userid`,
   - `token`,
@@ -80,6 +86,8 @@ in the body.
   - `userid`,
   - `token`, and
   - `response_id`.
+
+#### History
 
 - view request history, [GET] @ `/api/users/requests` with 
   - `userid` and 
@@ -98,6 +106,8 @@ in the body.
   - `userid`, and 
   - `token`.
   - (optional) `last_time`, as is stated above in request history API.
+
+#### Multimedia file
 
 - upload a file, [POST] @ `/api/multimedia/` with 
   - `userid`,

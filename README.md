@@ -131,6 +131,12 @@ Keep-Alive: timeout=5, max=100
 Content-Length: 44568
 ```
 
+- fetch dimensions of an image, [GET] @ `/api/multimedia/:imageid/dimensions` 
+  with 
+  - `userid`,
+  - `token`, and 
+  - `imageid` (as a parameter inside of the url).
+
 ### API Responses
 
 Responses are in JSON format and have at least two fields:

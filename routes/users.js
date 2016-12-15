@@ -129,6 +129,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
       ON
         r.publisher_id = ?
         AND r.publisher_id = u.userid 
+        AND r.end_time <= ?
     ` + creationTimeFilter +
     `)
 
@@ -153,13 +154,14 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
       ON
         r.actor_id = ?
         AND r.actor_id = u.userid 
+        AND r.push_time <= ?
     ` + creationTimeFilter +
     `)
       
       ORDER BY creation_time DESC
       LIMIT 20;
     `,
-    [userid, userid],
+    [userid, Date.now(), userid, Date.now()],
     conn.release()
   );
   res.send(JSON.stringify({

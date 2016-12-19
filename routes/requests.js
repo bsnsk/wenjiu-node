@@ -104,6 +104,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
           u.figure_id,
           u.nickname,
           r.creation_time,
+          r.num_likes,
           IF (
             CHARACTER_LENGTH(r.text) > 30, 
             CONCAT(LEFT(r.text, 30), '...'),

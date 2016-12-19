@@ -24,7 +24,8 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
       'u.userid, ' +
       'r.text, ' +
       'r.creation_time, ' +
-      'r.push_time ' +
+      'r.push_time, ' +
+      'r.num_likes ' +
     'FROM available_responses r ' +
     'JOIN all_users u ' +
       'ON r.actor_id=u.userid ' +

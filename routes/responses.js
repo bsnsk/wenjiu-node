@@ -85,6 +85,8 @@ router.post('/:response_id/like', userAuth, async (req, res, next) => {
     }));
     return;
   }
+  var success = true;
+  var err;
   try {
     await conn.execute(
       ` INSERT INTO thumbup (
@@ -101,27 +103,33 @@ router.post('/:response_id/like', userAuth, async (req, res, next) => {
       ]
     );
   }
-  catch (err) {
+  catch (e) {
+      success = false;
+      err = e;
       console.log({"err": err})
-      conn.release()
-      res.send(JSON.stringify({
-        "status": "failure",
-        "message": "probably you have already liked this response",
-        "detail": String(err).split("\n")[0]
-      }))
   }
-  await conn.execute(
-    ` UPDATE LOW_PRIORITY available_responses
-      SET num_likes = num_likes + 1
-      WHERE response_id = ?
-    `,
-    [response_id],
+  if (success) {
+    await conn.execute(
+      ` UPDATE LOW_PRIORITY available_responses
+        SET num_likes = num_likes + 1
+        WHERE response_id = ?
+      `,
+      [response_id],
+      conn.release()
+    );
+    res.send(JSON.stringify({
+      "status": "success",
+      "message": "like a response successfully.",
+    }));
+  }
+  else {
     conn.release()
-  );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "like a response successfully.",
-  }));
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "probably you have already liked this response",
+      "detail": String(err).split("\n")[0]
+    }))
+  }
 });
 
 /*

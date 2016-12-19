@@ -1,4 +1,5 @@
 npm-debug.log
+.sync-config.cson
 data
 .conf.json
 .users.json

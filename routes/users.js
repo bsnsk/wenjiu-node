@@ -132,7 +132,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
         AND r.actor_id = u.userid
         AND r.push_time < ?
     ` + creationTimeFilter +
-    ` ORDER BY r.num_likes, r.creation_time DESC
+    ` ORDER BY r.num_likes DESC , r.creation_time DESC
       LIMIT 50;
     `,
     [userid, Date.now()],

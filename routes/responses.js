@@ -6,7 +6,7 @@ var alchpool = require('../helpers/db').alchpool;
 var router = express.Router();
 
 /*
- * [GET] View a response 
+ * [GET] View a response
  */
 router.get('/:response_id', userAuth, async (req, res, next) => {
   var response_id = parseInt(req.params.response_id);
@@ -59,7 +59,72 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
 });
 
 /*
- * [DELETE] Delete a response 
+ * [POST] Like a response
+ */
+router.post('/:response_id/like', userAuth, async (req, res, next) => {
+  var response_id = parseInt(req.params.response_id);
+  var actor_id = parseInt(req.headers.userid);
+  if (!typecheck.check(response_id, "int")) {
+    typecheck.report(res);
+    return;
+  }
+  let conn = await alchpool.getConnection();
+  let [rows, fields] = await conn.execute(
+    ` SELECT
+        response_id
+      FROM available_responses
+      WHERE response_id = ?;
+    `,
+    [response_id]
+  );
+  if (rows.length == 0) {
+    res.send(JSON.stringify({
+      "status": "failure",
+      "message": "response id not found"
+    }));
+    return;
+  }
+  try {
+    await conn.execute(
+      ` INSERT INTO thumbup (
+          response_id,
+          liker_id,
+          like_time
+        )
+        VALUES (?, ?, ?);
+      `,
+      [
+        response_id,
+        actor_id,
+        Date.now()
+      ]
+    );
+  }
+  catch (err) {
+      console.log({"err": err})
+      conn.release()
+      res.send(JSON.stringify({
+        "status": "failure",
+        "message": "probably you have already liked this response",
+        "detail": String(err).split("\n")[0]
+      }))
+  }
+  await conn.execute(
+    ` UPDATE LOW_PRIORITY available_responses
+      SET num_likes = num_likes + 1
+      WHERE response_id = ?
+    `,
+    [response_id],
+    conn.release()
+  );
+  res.send(JSON.stringify({
+    "status": "success",
+    "message": "like a response successfully.",
+  }));
+});
+
+/*
+ * [DELETE] Delete a response
  */
 router.delete('/:response_id', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
@@ -99,7 +164,7 @@ router.delete('/:response_id', userAuth, async (req, res, next) => {
   else {
     let [rows, fields] = await conn.execute(
       "UPDATE `available_responses` SET `status` = 'deleted'" +
-      "WHERE response_id=?", 
+      "WHERE response_id=?",
       [response_id]
     );
     res.send(JSON.stringify({
@@ -118,7 +183,7 @@ router.post('/', userAuth, async (req, res, next) => {
   var request_id = parseInt(req.body.request_id);
   var text = req.body.text;
   var multimedia;
-   
+
   if (req.body.multimedia != undefined)
     multimedia = JSON.parse(req.body.multimedia);
 

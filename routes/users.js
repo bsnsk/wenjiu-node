@@ -13,7 +13,7 @@ router.post('/', async (req, res, next) => {
   var username = req.body.username;
   var password = req.body.password;
 
-  if (!typecheck.check(username, "string") 
+  if (!typecheck.check(username, "string")
     || !typecheck.check(password, "string")) {
     typecheck.report(res);
     return;
@@ -21,7 +21,7 @@ router.post('/', async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    "SELECT userid FROM all_users WHERE username=?;", 
+    "SELECT userid FROM all_users WHERE username=?;",
     [username]
   );
   if (rows.length > 0)
@@ -45,13 +45,13 @@ router.post('/', async (req, res, next) => {
 });
 
 /*
- * [GET] View a list of requests 
+ * [GET] View a list of requests
  */
 router.get('/requests', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var cursorCreationTime = req.query.last_time;
   var creationTimeFilter;
-  if (cursorCreationTime == undefined 
+  if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
@@ -61,13 +61,13 @@ router.get('/requests', userAuth, async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    ` SELECT 
+    ` SELECT
         r.request_id,
         u.nickname,
         u.figure_id,
         ' ' AS title,
         IF (
-          CHARACTER_LENGTH(r.text) > 100, 
+          CHARACTER_LENGTH(r.text) > 100,
           CONCAT(LEFT(r.text, 100), '...'),
           r.text
         ) AS text,
@@ -78,7 +78,7 @@ router.get('/requests', userAuth, async (req, res, next) => {
       JOIN all_users u
       ON
         r.publisher_id = ?
-        AND r.publisher_id = u.userid 
+        AND r.publisher_id = u.userid
     ` + creationTimeFilter +
     ` ORDER BY r.creation_time DESC
       LIMIT 20;
@@ -89,85 +89,59 @@ router.get('/requests', userAuth, async (req, res, next) => {
   res.send(JSON.stringify({
     "status": "success",
     "message": "fetch user requests",
-    "content": rows 
+    "content": rows
   }));
 });
 
 /*
- * [GET] View a list of requests and responses of a certain user
+ * [GET] View a list of requests and responses of a certain user,
+ *      which will be presented at the user profile page as highlights.
  */
 router.get('/:userid/highlights', userAuth, async (req, res, next) => {
   var userid = parseInt(req.params.userid);
   var cursorCreationTime = req.query.last_time;
   var creationTimeFilter;
-  if (cursorCreationTime == undefined 
+  if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
     var cursorInt = parseInt(cursorCreationTime);
-    creationTimeFilter = `AND creation_time < ${cursorInt}`;
+    creationTimeFilter = `AND r.creation_time < ${cursorInt}`;
   }
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    `(SELECT 
-        'request' AS item_type,
-        r.request_id AS item_id,
-        u.nickname,
-        u.figure_id,
-        ' ' AS title,
-        IF (
-          CHARACTER_LENGTH(r.text) > 100, 
-          CONCAT(LEFT(r.text, 100), '...'),
-          r.text
-        ) AS text,
-        r.creation_time,
-        r.end_time,
-        r.status
-      FROM available_requests r
-      JOIN all_users u
-      ON
-        r.publisher_id = ?
-        AND r.publisher_id = u.userid 
-        AND r.end_time <= ?
-    ` + creationTimeFilter +
-    `)
-
-    UNION ALL 
-
-    (SELECT 
+    ` SELECT
         'response' AS item_type,
         r.response_id AS item_id,
-        u.nickname,
-        u.figure_id,
-        ' ' AS title,
+        u.nickname AS nickname,
+        u.figure_id AS figure_id,
+        '' AS title,
         IF (
-          CHARACTER_LENGTH(r.text) > 100, 
+          CHARACTER_LENGTH(r.text) > 100,
           CONCAT(LEFT(r.text, 100), '...'),
           r.text
         ) AS text,
-        r.creation_time,
+        r.creation_time AS creation_time,
         r.push_time AS end_time,
-        r.status
+        r.num_likes AS num_likes
       FROM available_responses r
       JOIN all_users u
       ON
         r.actor_id = ?
-        AND r.actor_id = u.userid 
-        AND r.push_time <= ?
+        AND r.actor_id = u.userid
+        AND r.push_time < ?
     ` + creationTimeFilter +
-    `)
-      
-      ORDER BY creation_time DESC
-      LIMIT 20;
+    ` ORDER BY r.num_likes, r.creation_time DESC
+      LIMIT 50;
     `,
-    [userid, Date.now(), userid, Date.now()],
+    [userid, Date.now()],
     conn.release()
   );
   res.send(JSON.stringify({
     "status": "success",
     "message": "fetch user highlights",
-    "content": rows 
+    "content": rows
   }));
 });
 /*
@@ -177,7 +151,7 @@ router.get('/history', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var cursorCreationTime = req.query.last_time;
   var creationTimeFilter;
-  if (cursorCreationTime == undefined 
+  if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
@@ -187,14 +161,14 @@ router.get('/history', userAuth, async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    `(SELECT 
+    `(SELECT
         'request' AS item_type,
         r.request_id AS item_id,
         u.nickname,
         u.figure_id,
         ' ' AS title,
         IF (
-          CHARACTER_LENGTH(r.text) > 100, 
+          CHARACTER_LENGTH(r.text) > 100,
           CONCAT(LEFT(r.text, 100), '...'),
           r.text
         ) AS text,
@@ -205,20 +179,20 @@ router.get('/history', userAuth, async (req, res, next) => {
       JOIN all_users u
       ON
         r.publisher_id = ?
-        AND r.publisher_id = u.userid 
+        AND r.publisher_id = u.userid
     ` + creationTimeFilter +
     `)
 
-    UNION ALL 
+    UNION ALL
 
-    (SELECT 
+    (SELECT
         'response' AS item_type,
         r.response_id AS item_id,
         u.nickname,
         u.figure_id,
         ' ' AS title,
         IF (
-          CHARACTER_LENGTH(r.text) > 100, 
+          CHARACTER_LENGTH(r.text) > 100,
           CONCAT(LEFT(r.text, 100), '...'),
           r.text
         ) AS text,
@@ -229,10 +203,10 @@ router.get('/history', userAuth, async (req, res, next) => {
       JOIN all_users u
       ON
         r.actor_id = ?
-        AND r.actor_id = u.userid 
+        AND r.actor_id = u.userid
     ` + creationTimeFilter +
     `)
-      
+
       ORDER BY creation_time DESC
       LIMIT 20;
     `,
@@ -242,7 +216,7 @@ router.get('/history', userAuth, async (req, res, next) => {
   res.send(JSON.stringify({
     "status": "success",
     "message": "fetch user requests",
-    "content": rows 
+    "content": rows
   }));
 });
 
@@ -255,7 +229,7 @@ router.get('/responses', userAuth, async (req, res, next) => {
   let [rows, fields] = await conn.execute(
     'SELECT * FROM available_responses ' +
     'WHERE actor_id=? ' +
-    'ORDER BY push_time DESC ' + 
+    'ORDER BY push_time DESC ' +
     'LIMIT 20;',
     [userid],
     conn.release()
@@ -263,12 +237,12 @@ router.get('/responses', userAuth, async (req, res, next) => {
   res.send(JSON.stringify({
     "status": "success",
     "message": "fetch user responses",
-    "content": rows 
+    "content": rows
   }));
 });
 
-/* 
- * [GET] Get public information of a user 
+/*
+ * [GET] Get public information of a user
  */
 router.get('/:user_id', userAuth, async (req, res, next) => {
   var user_id = parseInt(req.params.user_id);
@@ -278,15 +252,15 @@ router.get('/:user_id', userAuth, async (req, res, next) => {
   }
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    `SELECT 
-      username, 
-      nickname, 
-      gender, 
-      signature, 
-      figure_id, 
-      rating, 
-      disabled 
-    FROM all_users 
+    `SELECT
+      username,
+      nickname,
+      gender,
+      signature,
+      figure_id,
+      rating,
+      disabled
+    FROM all_users
     WHERE userid=?`,
     [user_id],
     conn.release()
@@ -311,7 +285,7 @@ router.get('/:user_id', userAuth, async (req, res, next) => {
 });
 
 /*
- * [PUT] Update User Profile 
+ * [PUT] Update User Profile
  */
 router.put('/:user_id', userAuth, async (req, res, next) => {
   var user_id = parseInt(req.params.user_id);
@@ -326,7 +300,7 @@ router.put('/:user_id', userAuth, async (req, res, next) => {
     if (req.body[subjects[i]] != undefined) {
       if (subject_type[i] != 'string')
         infoStrings.push(subjects[i] + '=' + req.body[subjects[i]])
-      else 
+      else
         infoStrings.push(subjects[i] + "='" + req.body[subjects[i]] + "'")
     }
 
@@ -355,7 +329,7 @@ router.put('/:user_id', userAuth, async (req, res, next) => {
 });
 
 /*
- * [POST] Reset password 
+ * [POST] Reset password
  */
 router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
   var user_id = parseInt(req.params.user_id);
@@ -373,7 +347,7 @@ router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-    ` SELECT 
+    ` SELECT
         passwordhash
       FROM all_users
       WHERE userid=?;`,

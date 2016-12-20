@@ -1,8 +1,9 @@
 var express = require('express');
 var typecheck = require('../helpers/typecheck');
-var idgenerator = require('../helpers/idgenerator');
 var userAuth = require('../helpers/userAuth').authenticate;
 var alchpool = require('../helpers/db').alchpool;
+import APIResponse from '../helpers/APIresponse';
+import {genInt as genId} from '../helpers/idgenerator';
 var router = express.Router();
 
 /*
@@ -25,21 +26,15 @@ router.post('/', async (req, res, next) => {
     [username]
   );
   if (rows.length > 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "username existing"
-    }));
+    res.send(new APIResponse(false, "username existing"));
   else {
-    var id = await idgenerator.genInt('user');
+    var id: number = await genId('user');
     let [rows, fields ] = await conn.execute(
       "INSERT INTO all_users (`userid`, `username`, `passwordhash`) "
       + "VALUES (?, ?, ?);",
       [id, username, password]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "user registration"
-    }));
+    res.send(new APIResponse(true, "user registration"));
   }
   conn.release();
 });
@@ -48,14 +43,14 @@ router.post('/', async (req, res, next) => {
  * [GET] View a list of requests
  */
 router.get('/requests', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.headers.userid);
+  var userid: number = parseInt(req.headers.userid);
   var cursorCreationTime = req.query.last_time;
-  var creationTimeFilter;
+  var creationTimeFilter: string;
   if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
-    var cursorInt = parseInt(cursorCreationTime);
+    var cursorInt: number = parseInt(cursorCreationTime);
     creationTimeFilter = `AND creation_time < ${cursorInt}`;
   }
 
@@ -86,9 +81,7 @@ router.get('/requests', userAuth, async (req, res, next) => {
     [userid],
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "fetch user requests",
+  res.send(new APIResponse(true, "fetch user requests", {
     "content": rows
   }));
 });
@@ -98,9 +91,9 @@ router.get('/requests', userAuth, async (req, res, next) => {
  *      which will be presented at the user profile page as highlights.
  */
 router.get('/:userid/highlights', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.params.userid);
+  var userid: number = parseInt(req.params.userid);
   var cursorCreationTime = req.query.last_time;
-  var creationTimeFilter;
+  var creationTimeFilter: string;
   if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
@@ -138,9 +131,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
     [userid, Date.now()],
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "fetch user highlights",
+  res.send(new APIResponse(true, "fetch user highlights", {
     "content": rows
   }));
 });
@@ -148,14 +139,14 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
  * [GET] View a list of requests and responses
  */
 router.get('/history', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.headers.userid);
+  var userid: number = parseInt(req.headers.userid);
   var cursorCreationTime = req.query.last_time;
-  var creationTimeFilter;
+  var creationTimeFilter: string;
   if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
-    var cursorInt = parseInt(cursorCreationTime);
+    var cursorInt: number = parseInt(cursorCreationTime);
     creationTimeFilter = `AND creation_time < ${cursorInt}`;
   }
 
@@ -213,9 +204,7 @@ router.get('/history', userAuth, async (req, res, next) => {
     [userid, userid],
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "fetch user requests",
+  res.send(new APIResponse(true, "fetch user requests", {
     "content": rows
   }));
 });
@@ -234,9 +223,7 @@ router.get('/responses', userAuth, async (req, res, next) => {
     [userid],
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "fetch user responses",
+  res.send(new APIResponse(true, "fetch user responses", {
     "content": rows
   }));
 });
@@ -266,19 +253,11 @@ router.get('/:user_id', userAuth, async (req, res, next) => {
     conn.release()
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "user not found"
-    }));
+    res.send(new APIResponse(false, "user not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "user id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "user id has duplicates (probably a server error)"))
   else {
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "user fetched",
+    res.send(new APIResponse(true, "user fetched", {
       "content": rows[0]
     }));
   }
@@ -290,9 +269,9 @@ router.get('/:user_id', userAuth, async (req, res, next) => {
 router.put('/:user_id', userAuth, async (req, res, next) => {
   var user_id = parseInt(req.params.user_id);
   var actor_id = parseInt(req.headers.userid);
-  var infoStrings = [];
-  var subjects = ['gender', 'figure_id', 'nickname', 'signature'];
-  var subject_type = ['string', 'int', 'string', 'string'];
+  var infoStrings: Array<string> = [];
+  const subjects = ['gender', 'figure_id', 'nickname', 'signature'];
+  const subject_type = ['string', 'int', 'string', 'string'];
 
   console.log({"update user": user_id, "by": actor_id, "info": req.body});
 
@@ -322,10 +301,7 @@ router.put('/:user_id', userAuth, async (req, res, next) => {
     [user_id],
     conn.release()
   );
-  res.send(JSON.stringify({
-      "status": "success",
-      "message": "user profile updated"
-  }));
+  res.send(new APIResponse(true, "user profile updated"));
 });
 
 /*
@@ -354,20 +330,11 @@ router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
     [user_id]
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request not found"
-    }));
+    res.send(new APIResponse(false, "request not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "request id has duplicates (probably a server error)"));
   else if (rows[0]['passwordhash'] != oldPassword)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "Old password incorrect"
-    }));
+    res.send(new APIResponse(false, "old password incorrect"));
   else {
     console.log('old password verified');
     let [rows, fields] = await conn.execute(
@@ -376,10 +343,7 @@ router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
         WHERE userid=?;`,
       [newPassword, user_id]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "user password changed"
-    }));
+    res.send(new APIResponse(true, "user password changed"));
   }
   conn.release();
 });

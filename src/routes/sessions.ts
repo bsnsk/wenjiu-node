@@ -3,6 +3,7 @@ var jwt = require('jsonwebtoken');
 var userconf = require('../../.users.json');
 var typecheck = require('../helpers/typecheck');
 var alchpool = require('../helpers/db').alchpool;
+import APIResponse from '../helpers/APIresponse';
 var router = express.Router();
 
 /*
@@ -36,15 +37,9 @@ router.post('/', async (req, res, next) => {
       [username]
   );
   if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "multiple users with this name"
-    }))
+    res.send(new APIResponse(false, "multiple users with this name"));
   else if (rows.length == 0)
-      res.send(JSON.stringify({
-        "status": "failure",
-        "message": "username not found"
-      }))
+    res.send(new APIResponse(false, "username not found"));
   else if (rows[0]['passwordhash'] == password){
 
     console.log({"timestamp": new Date()});
@@ -59,9 +54,7 @@ router.post('/', async (req, res, next) => {
       "INSERT INTO valid_tokens (`userid`, `token`) VALUES (?, ?);",
       [rows[0]['userid'].toString(), token]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "login",
+    res.send(new APIResponse(true, "login", {
       "userid": rows[0]['userid'],
       "token": token,
       "nickname": rows[0]['nickname'],
@@ -71,15 +64,9 @@ router.post('/', async (req, res, next) => {
     }));
   }
   else if (rows[0]['passwordhash'] != password)
-      res.send(JSON.stringify({
-        "status": "failure",
-        "message": "incorrect password"
-      }))
+    res.send(new APIResponse(false, "incorrect password"));
   else
-      res.send(JSON.stringify({
-        "status": "failure",
-        "message": "unknown reason"
-      }))
+    res.send(new APIResponse(false, "unknown reason"));
   conn.release();
 });
 
@@ -97,26 +84,20 @@ router.delete('/', async (req, res, next) => {
     "SELECT userid, token FROM valid_tokens WHERE userid=?;",
     [userid]
   );
-  var found = 0;
+  var found: boolean = false;
   for (var i=0; i<rows.length; i++)
     if (rows[i]['token'] == token) {
-      found = 1;
+      found = true;
       break;
     }
-  if (found == 0)
-    res.send(JSON.stringify({
-     "status": "failure",
-     "message": "user not logged in"
-    }))
+  if (!found)
+    res.send(new APIResponse(false, "user not logged in"));
   else {
     let [rows, fields] = await conn.execute(
       "DELETE FROM valid_tokens WHERE userid=? AND token=?;",
       [userid, token]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "user logout"
-    }));
+    res.send(new APIResponse(true, "user logout"));
   }
   conn.release();
 });

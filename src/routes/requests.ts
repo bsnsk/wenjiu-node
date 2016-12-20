@@ -1,8 +1,9 @@
 var express = require('express');
-var idgenerator = require('../helpers/idgenerator');
 var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
 var alchpool = require('../helpers/db').alchpool;
+import APIResponse from '../helpers/APIresponse';
+import {genInt as genId} from '../helpers/idgenerator';
 var router = express.Router();
 
 /*
@@ -49,11 +50,7 @@ router.get('/', userAuth, async (req, res, next) => {
     [Date.now(), userid],
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "fetch recent requests",
-    "content": rows
-  }));
+  res.send(new APIResponse(true, "fetch recent requests", {"content": rows}));
 });
 
 /*
@@ -84,17 +81,12 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
     [request_id]
   );
   if (rows.length == 0) {
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request not found"
-    }));
+    res.send(new APIResponse(false, "request not found"));
     conn.release();
   }
   else if (rows.length > 1) {
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false,
+      "request id has duplicates (probably a server error)"));
     conn.release();
   }
   else {
@@ -122,9 +114,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
       [rows[0]['request_id']],
       conn.release()
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "request fetched successfully.",
+    res.send(new APIResponse(true, "request fetched successfully.", {
       "content": {
                   "request_meta": rows[0],
                   "multimedia": rows3,
@@ -154,25 +144,16 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
     conn.release()
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request not found"
-    }));
+    res.send(new APIResponse(false, "request not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false,
+      "request id has duplicates (probably a server error)"));
   else if (userid != parseInt(rows[0]['publisher_id']))
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "this request cannot be deleted unless by its publisher"
-    }));
+    res.send(new APIResponse(false,
+      "this request cannot be deleted unless by its publisher"));
   else if (rows[0]['status'] == 'deleted')
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "request already deleted"
-    }));
+    res.send(new APIResponse(false,
+      "request already deleted"));
   else {
     let conn = await alchpool.getConnection();
     let [rows, fields] = await conn.execute(
@@ -181,10 +162,7 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
       [request_id],
       conn.release()
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "request deleted successfully.",
-    }));
+    res.send(new APIResponse(true, "request deleted successfully."));
   }
 });
 
@@ -213,7 +191,7 @@ router.post('/', userAuth, async (req, res, next) => {
   if (title == undefined)
     title = '';
 
-  let id = await idgenerator.genInt('request');
+  let id = await genId('request');
   let request_info =
     [
       id,
@@ -248,11 +226,9 @@ router.post('/', userAuth, async (req, res, next) => {
       ]
     );
   }
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "request published",
+  res.send(new APIResponse(true, "request published", {
     "requestid": id.toString()
-  }));
+  }))
   conn.release();
 });
 

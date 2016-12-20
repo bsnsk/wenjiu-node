@@ -1,5 +1,6 @@
 var typecheck = require('./typecheck');
 var alchpool = require('./db').alchpool;
+import APIResponse from './APIresponse';
 
 module.exports = {
   authenticate: async (req, res, next) => {
@@ -20,17 +21,14 @@ module.exports = {
       conn.release()
     );
 
-    var found = 0;
+    var found: boolean = false;
     for (var i=0; i<rows.length; i++)
       if (rows[i]['token'] == token) {
-        found = 1;
+        found = true;
         break;
       }
-    if (found == 0)
-      res.send(JSON.stringify({
-       "status": "failure",
-       "message": "user not logged in or invalid token"
-      }))
+    if (!found)
+      res.send(new APIResponse(false, "user not logged in or invalid token"));
     else next();
   }
 };

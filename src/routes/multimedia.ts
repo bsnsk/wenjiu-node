@@ -3,9 +3,10 @@ var path = require('path');
 var multer  = require('multer')
 var sizeOf = require('image-size');
 var userAuth = require('../helpers/userAuth').authenticate;
-var idgenerator = require('../helpers/idgenerator');
 var typecheck = require('../helpers/typecheck');
 var alchpool = require('../helpers/db').alchpool;
+import APIResponse from '../helpers/APIresponse';
+import {genInt as genId} from '../helpers/idgenerator';
 var router = express.Router();
 
 var upload = multer({ dest: 'data/' })
@@ -26,15 +27,12 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   }
 
   if (req.file.size > 5242880) { // 5MB
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "file larger than 5MB"
-    }));
+    res.send(new APIResponse(false, "file larger than 5MB"));
   }
 
   console.log(req.file.originalname);
 
-  let id = await idgenerator.genInt('multimedia');
+  let id = await genId('multimedia');
   let multimedia_info =
     [
       id,
@@ -56,12 +54,10 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
     multimedia_info,
     conn.release()
   );
-  res.send(JSON.stringify({
-    "status": "success",
-    "message": "file uploaded",
+  res.send(new APIResponse(true, "file uploaded", {
     "content_id": id,
     "content_type": filetype
-  }));
+  }))
 });
 
 /*
@@ -83,15 +79,9 @@ router.get('/', userAuth, async (req, res, next) => {
     conn.release()
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "file not found"
-    }));
+    res.send(new APIResponse(false, "file not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "file id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "file id has duplicates (probably a server error)"));
   else {
     var filePath: string = rows[0]['path'];
     console.log({
@@ -104,10 +94,7 @@ router.get('/', userAuth, async (req, res, next) => {
       res.sendFile(path.join(__dirname, '../', filePath));
     }
     else {
-      res.send(JSON.stringify({
-        "status": "success",
-	"message": "multimedia file not sent back"
-      }))
+      res.send(new APIResponse(true, "multimedia file not sent back"));
     }
   }
 });
@@ -130,15 +117,9 @@ router.get('/:imageid/dimensions', userAuth, async (req, res, next) => {
     conn.release()
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "file not found"
-    }));
+    res.send(new APIResponse(false, "file not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "file id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "file id has duplicates (probably a server error)"));
   else {
     var filePath: string = rows[0]['path'];
     console.log({
@@ -152,18 +133,13 @@ router.get('/:imageid/dimensions', userAuth, async (req, res, next) => {
       || rows[0]['content_type'].toUpperCase() == 'PNG'
     ) {
       var dimensions = sizeOf(path.join(__dirname, '../', filePath));
-      res.send(JSON.stringify({
-        "status": "success",
-        "message": "fetch image dimensions",
+      res.send(new APIResponse(true, "fetch image dimensions", {
         "width": dimensions.width,
         "height": dimensions.height,
       }))
     }
     else {
-      res.send(JSON.stringify({
-        "status": "failure",
-	      "message": "file with the given id is not an image"
-      }))
+      res.send(new APIResponse(false, "file with the given id is not an image"));
     }
   }
 });

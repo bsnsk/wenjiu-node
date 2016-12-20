@@ -1,4 +1,6 @@
 
+import APIResponse from './APIresponse';
+
 module.exports = {
   check: (variable, standard) => {
     switch (standard) {
@@ -17,9 +19,6 @@ module.exports = {
   },
 
   report: (res) => {
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "invalid argument"
-    }));
+    res.send(new APIResponse(false, "invalid argument"));
   }
 }

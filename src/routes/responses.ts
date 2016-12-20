@@ -1,8 +1,9 @@
 var express = require('express');
-var idgenerator = require('../helpers/idgenerator');
 var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
 var alchpool = require('../helpers/db').alchpool;
+import APIResponse from '../helpers/APIresponse';
+import {genInt as genId} from '../helpers/idgenerator';
 var router = express.Router();
 
 /*
@@ -33,23 +34,15 @@ router.get('/:response_id', userAuth, async (req, res, next) => {
     [response_id]
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response not found"
-    }));
+    res.send(new APIResponse(false, "response not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "response id has duplicates (probably a server error)"));
   else {
     let [mrows, mfields] = await conn.execute(
       'SELECT multimedia_id FROM response_multimedia WHERE response_id=?;',
       [rows[0]['response_id']]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "response fetched successfully.",
+    res.send(new APIResponse(true, "response fetched successfully.", {
       "content": {
                   "response_content": rows[0],
                   "multimedia": mrows
@@ -79,13 +72,10 @@ router.post('/:response_id/like', userAuth, async (req, res, next) => {
     [response_id]
   );
   if (rows.length == 0) {
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response id not found"
-    }));
+    res.send(new APIResponse(false, "response id not found"));
     return;
   }
-  var success = true;
+  var success: boolean = true;
   var err;
   try {
     await conn.execute(
@@ -117,16 +107,11 @@ router.post('/:response_id/like', userAuth, async (req, res, next) => {
       [response_id],
       conn.release()
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "like a response successfully.",
-    }));
+    res.send(new APIResponse(true, "like a response successfully."));
   }
   else {
     conn.release()
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "probably you have already liked this response",
+    res.send(new APIResponse(false, "probably you have already liked this response", {
       "detail": String(err).split("\n")[0]
     }))
   }
@@ -151,35 +136,20 @@ router.delete('/:response_id', userAuth, async (req, res, next) => {
     [response_id]
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response not found"
-    }));
+    res.send(new APIResponse(false, "response not found"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response id has duplicates (probably a server error)"
-    }));
+    res.send(new APIResponse(false, "response id has duplicates (probably a server error)"));
   else if (userid != parseInt(rows[0]['actor_id']))
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "this response cannot be deleted unless by its publisher"
-    }));
+    res.send(new APIResponse(false, "this response cannot be deleted unless by its publisher"));
   else if (rows[0]['status'] == 'deleted')
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "response already deleted"
-    }));
+    res.send(new APIResponse(false, "response already deleted"));
   else {
     let [rows, fields] = await conn.execute(
       "UPDATE `available_responses` SET `status` = 'deleted'" +
       "WHERE response_id=?",
       [response_id]
     );
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "response deleted successfully.",
-    }));
+    res.send(new APIResponse(true, "response deleted successfully."));
   }
   conn.release();
 });
@@ -210,17 +180,11 @@ router.post('/', userAuth, async (req, res, next) => {
     [request_id]
   );
   if (rows.length == 0)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "invalid request id"
-    }));
+    res.send(new APIResponse(false, "invalid request id"));
   else if (rows.length > 1)
-    res.send(JSON.stringify({
-      "status": "failure",
-      "message": "duplicate request id"
-    }))
+    res.send(new APIResponse(false, "duplicate request id"));
   else {
-    let response_id = await idgenerator.genInt('response');
+    let response_id = await genId('response');
     await conn.execute(
       'INSERT INTO available_responses ( ' +
         '`response_id`, ' +
@@ -252,9 +216,7 @@ router.post('/', userAuth, async (req, res, next) => {
         ]
       );
     }
-    res.send(JSON.stringify({
-      "status": "success",
-      "message": "response published",
+    res.send(new APIResponse(true, "response published", {
       "responseid": response_id.toString()
     }));
   }

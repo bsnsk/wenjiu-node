@@ -1,19 +1,19 @@
 var express = require('express');
 var jwt = require('jsonwebtoken');
-var userconf = require('../.users.json');
+var userconf = require('../../.users.json');
 var typecheck = require('../helpers/typecheck');
 var alchpool = require('../helpers/db').alchpool;
 var router = express.Router();
 
 /*
- * [POST] User login 
+ * [POST] User login
  */
 router.post('/', async (req, res, next) => {
 
   var username = req.body.username;
   var password = req.body.password;
 
-  if (!typecheck.check(username, "string") 
+  if (!typecheck.check(username, "string")
     || !typecheck.check(password, "string")) {
     typecheck.report(res);
     return;
@@ -23,14 +23,14 @@ router.post('/', async (req, res, next) => {
 
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
-      ` SELECT 
-          userid, 
-          passwordhash, 
+      ` SELECT
+          userid,
+          passwordhash,
           nickname,
           gender,
-          signature, 
+          signature,
           figure_id
-        FROM all_users 
+        FROM all_users
         WHERE username=?;
       `,
       [username]
@@ -45,7 +45,7 @@ router.post('/', async (req, res, next) => {
         "status": "failure",
         "message": "username not found"
       }))
-  else if (rows[0]['passwordhash'] == password){ 
+  else if (rows[0]['passwordhash'] == password){
 
     console.log({"timestamp": new Date()});
 

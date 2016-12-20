@@ -6,14 +6,14 @@ var alchpool = require('../helpers/db').alchpool;
 var router = express.Router();
 
 /*
- * [GET] View a list of requests 
+ * [GET] View a list of requests
  */
 router.get('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
   var cursorCreationTime = req.query.last_time;
   var creationTimeFilter;
 
-  if (cursorCreationTime == undefined 
+  if (cursorCreationTime == undefined
     || isNaN(parseInt(cursorCreationTime)) )
     creationTimeFilter = "";
   else {
@@ -30,21 +30,21 @@ router.get('/', userAuth, async (req, res, next) => {
       u.figure_id,
       ' ' AS title,
       IF (
-        CHARACTER_LENGTH(r.text) > 100, 
+        CHARACTER_LENGTH(r.text) > 100,
         CONCAT(LEFT(r.text, 100), '...'),
         r.text
       ) AS text,
       r.creation_time,
       r.end_time
     FROM available_requests r
-    JOIN all_users u 
-    ON 
+    JOIN all_users u
+    ON
       r.status IS NULL
       AND r.publisher_id = u.userid
       AND r.end_time > ?
       AND r.publisher_id <> ?
   ` + creationTimeFilter +
-  ` ORDER BY r.creation_time DESC 
+  ` ORDER BY r.creation_time DESC
     LIMIT 20;`,
     [Date.now(), userid],
     conn.release()
@@ -52,12 +52,12 @@ router.get('/', userAuth, async (req, res, next) => {
   res.send(JSON.stringify({
     "status": "success",
     "message": "fetch recent requests",
-    "content": rows 
+    "content": rows
   }));
 });
 
-/* 
- * [GET] View a request 
+/*
+ * [GET] View a request
  */
 router.get('/:request_id', userAuth, async (req, res, next) => {
   var request_id = parseInt(req.params.request_id);
@@ -106,7 +106,7 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
           r.creation_time,
           r.num_likes,
           IF (
-            CHARACTER_LENGTH(r.text) > 30, 
+            CHARACTER_LENGTH(r.text) > 30,
             CONCAT(LEFT(r.text, 30), '...'),
             r.text
           ) AS text
@@ -128,15 +128,15 @@ router.get('/:request_id', userAuth, async (req, res, next) => {
       "content": {
                   "request_meta": rows[0],
                   "multimedia": rows3,
-                  "responses": rows2 
+                  "responses": rows2
                 }
     }));
   }
 });
 
 
-/* 
- * [DELETE] Delete a request 
+/*
+ * [DELETE] Delete a request
  */
 router.delete('/:request_id', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
@@ -177,10 +177,10 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
     let conn = await alchpool.getConnection();
     let [rows, fields] = await conn.execute(
       "UPDATE `available_requests` SET `status` = 'deleted'" +
-      "WHERE request_id=?", 
+      "WHERE request_id=?",
       [request_id],
       conn.release()
-    ); 
+    );
     res.send(JSON.stringify({
       "status": "success",
       "message": "request deleted successfully.",
@@ -190,7 +190,7 @@ router.delete('/:request_id', userAuth, async (req, res, next) => {
 
 
 /*
- * [POST] Publish a request 
+ * [POST] Publish a request
  */
 router.post('/', userAuth, async (req, res, next) => {
   var userid = parseInt(req.headers.userid);
@@ -198,7 +198,7 @@ router.post('/', userAuth, async (req, res, next) => {
   var text = req.body.text;
   var end_time = req.body.endtime;
   var multimedia;
-  
+
   if (req.body.multimedia != undefined)
     multimedia = JSON.parse(req.body.multimedia);
 
@@ -214,7 +214,7 @@ router.post('/', userAuth, async (req, res, next) => {
     title = '';
 
   let id = await idgenerator.genInt('request');
-  let request_info = 
+  let request_info =
     [
       id,
       title,
@@ -226,7 +226,7 @@ router.post('/', userAuth, async (req, res, next) => {
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
     'INSERT INTO available_requests (' +
-      '`request_id`,' + 
+      '`request_id`,' +
       '`title`, ' +
       '`text`, ' +
       '`creation_time`, ' +

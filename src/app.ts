@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var options = require('./.conf.json').mysql;
+var options = require('../.conf.json').mysql;
 var dbPool = require('./helpers/db').init("alchpool", options);
 console.log(dbPool);
 
@@ -32,26 +32,26 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// several routes 
+// several routes
 // - index
 app.use('/', routes);
-// - session 
+// - session
 app.use('/api/sessions', sessions);
-// - users 
+// - users
 app.use('/api/users', users);
-// - requests 
+// - requests
 app.use('/api/requests', requests);
-// - responses 
+// - responses
 app.use('/api/responses', responses);
 // - multimedia
 app.use('/api/multimedia', multimedia);
 
-// - test 
+// - test
 app.use('/api/test', test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  var err:any = new Error('Not Found');
   err.status = 404;
   next(err);
 });

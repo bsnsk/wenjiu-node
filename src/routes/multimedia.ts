@@ -11,7 +11,7 @@ var router = express.Router();
 var upload = multer({ dest: 'data/' })
 
 /*
- * [POST] Upload a file 
+ * [POST] Upload a file
  */
 router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   var nameSplit = req.file.originalname.split('.');
@@ -52,7 +52,7 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
       "`upload_time`, " +
       "`size`, " +
       "`path` )" +
-      "VALUES (?,?,?,?,?,?);", 
+      "VALUES (?,?,?,?,?,?);",
     multimedia_info,
     conn.release()
   );
@@ -60,7 +60,7 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
     "status": "success",
     "message": "file uploaded",
     "content_id": id,
-    "content_type": filetype 
+    "content_type": filetype
   }));
 });
 
@@ -93,7 +93,7 @@ router.get('/', userAuth, async (req, res, next) => {
       "message": "file id has duplicates (probably a server error)"
     }));
   else {
-    filePath = rows[0]['path'];
+    var filePath: string = rows[0]['path'];
     console.log({
       "requesting": filePath,
       "providing": path.join(__dirname, '../', filePath),
@@ -140,7 +140,7 @@ router.get('/:imageid/dimensions', userAuth, async (req, res, next) => {
       "message": "file id has duplicates (probably a server error)"
     }));
   else {
-    filePath = rows[0]['path'];
+    var filePath: string = rows[0]['path'];
     console.log({
       "requesting": filePath,
       "providing": path.join(__dirname, '../', filePath),

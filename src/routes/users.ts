@@ -105,7 +105,7 @@ router.get('/:userid/highlights', userAuth, async (req, res, next) => {
     || isNaN(parseInt(cursorCreationTime)))
     creationTimeFilter = "";
   else {
-    var cursorInt = parseInt(cursorCreationTime);
+    var cursorInt: number = parseInt(cursorCreationTime);
     creationTimeFilter = `AND r.creation_time < ${cursorInt}`;
   }
 

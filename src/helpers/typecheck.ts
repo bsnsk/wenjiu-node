@@ -3,7 +3,7 @@ module.exports = {
   check: (variable, standard) => {
     switch (standard) {
       case "int":
-        return !isNaN(parseInt(variable)); 
+        return !isNaN(parseInt(variable));
       case "string":
         return !(variable === undefined) && variable.toString() == variable;
       case "not_null":

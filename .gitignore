@@ -4,3 +4,4 @@ data
 .conf.json
 .users.json
 node_modules
+built

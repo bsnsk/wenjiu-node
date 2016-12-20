@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node --harmony-async-await ./bin/www"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
@@ -19,6 +19,10 @@
     "mysql2": "^1.1.1",
     "node-schedule": "^1.2.0",
     "serve-favicon": "~2.3.0",
-    "smart-id": "^0.4.0"
+    "smart-id": "^0.4.0",
+    "typescript": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.52"
   }
 }

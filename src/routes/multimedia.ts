@@ -119,12 +119,12 @@ router.get('/', userAuth, async (req, res, next) => {
     var filePath: string = rows[0]['path'];
     console.log({
       "requesting": filePath,
-      "providing": path.join(__dirname, '../', filePath),
+      "providing": path.join(__dirname, '../../', filePath),
       "image-only": imageonly
     });
     res.append('Multimedia-Type', rows[0]['content_type'])
     if (imageonly != 'yes' || rows[0]['content_type'] == 'IMG') {
-      res.sendFile(path.join(__dirname, '../', filePath));
+      res.sendFile(path.join(__dirname, '../../', filePath));
     }
     else {
       res.send(new APIResponse(true, "multimedia file not sent back"));

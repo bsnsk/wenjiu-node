@@ -2,8 +2,10 @@ var express = require('express');
 var path = require('path');
 var multer  = require('multer')
 var sizeOf = require('image-size');
+var fs = require('fs');
 var userAuth = require('../helpers/userAuth').authenticate;
 var typecheck = require('../helpers/typecheck');
+var md5File = require('md5-file/promise');
 var alchpool = require('../helpers/db').alchpool;
 import APIResponse from '../helpers/APIresponse';
 import {genInt as genId} from '../helpers/idgenerator';
@@ -31,8 +33,40 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   }
 
   console.log(req.file.originalname);
+  let conn = await alchpool.getConnection();
+
+  const newFilePath: string = path.join(__dirname, '../../', req.file.path);
+  let hash = await md5File(newFilePath);
+  console.log("upload file with MD5 " + hash);
+
+  let [rows, fields] = await conn.execute(
+    ` SELECT file_id
+      FROM file_hashes
+      WHERE file_hash = ?;
+    `,
+    [hash]
+  );
+
+  if (rows.length > 0) {
+    console.log("file md5 already exists!");
+    fs.unlink(newFilePath);
+    res.send(new APIResponse(true, "file uploaded", {
+      "content_id": rows[0]["file_id"],
+      "content_type": filetype
+    }));
+    conn.release();
+    return;
+  }
 
   let id = await genId('multimedia');
+  await conn.execute(
+    ` INSERT INTO file_hashes
+        (file_id, file_hash)
+      VALUES (?, ?);
+    `,
+    [id, hash]
+  );
+
   let multimedia_info =
     [
       id,
@@ -42,8 +76,7 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
       req.file.size,
       req.file.path,
     ];
-  let conn = await alchpool.getConnection();
-  let [rows, fields] = await conn.execute(
+  [rows, fields] = await conn.execute(
     "INSERT INTO multimedia (`content_id`, " +
       "`content_type`, " +
       "`uploader_id`, " +
@@ -124,7 +157,7 @@ router.get('/:imageid/dimensions', userAuth, async (req, res, next) => {
     var filePath: string = rows[0]['path'];
     console.log({
       "requesting": filePath,
-      "providing": path.join(__dirname, '../', filePath),
+      "providing": path.join(__dirname, '../../', filePath),
     });
     res.append('Multimedia-Type', rows[0]['content_type'])
     if (rows[0]['content_type'].toUpperCase() == 'IMG'
@@ -132,7 +165,7 @@ router.get('/:imageid/dimensions', userAuth, async (req, res, next) => {
       || rows[0]['content_type'].toUpperCase() == 'JPG'
       || rows[0]['content_type'].toUpperCase() == 'PNG'
     ) {
-      var dimensions = sizeOf(path.join(__dirname, '../', filePath));
+      var dimensions = sizeOf(path.join(__dirname, '../../', filePath));
       res.send(new APIResponse(true, "fetch image dimensions", {
         "width": dimensions.width,
         "height": dimensions.height,

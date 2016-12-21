@@ -249,6 +249,21 @@
       "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
     },
     {
+      "name": "file_hashes",
+      "columns": [
+        {
+          "name": "file_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "file_hash",
+          "type": "VARCHAR(65) NOT NULL"
+        }
+      ],
+      "primary": ["file_hash"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
+    },
+    {
       "name": "valid_tokens",
       "columns": [
         {

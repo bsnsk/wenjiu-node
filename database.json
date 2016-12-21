@@ -1,0 +1,266 @@
+{
+  "tables": [
+    {
+      "name": "all_ids",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "type",
+          "type": "varchar(30) DEFAULT NULL"
+        }
+      ],
+      "primary": ["id"],
+      "unique": [
+        {
+          "name": "id",
+          "columns": ["id"]
+        }
+      ],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=utf8"
+    },
+    {
+      "name": "all_users",
+      "columns": [
+        {
+          "name": "userid",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "username",
+          "type": "varchar(30) NOT NULL"
+        },
+        {
+          "name": "passwordhash",
+          "type": "varchar(256) NOT NULL"
+        },
+        {
+          "name": "gender",
+          "type": "varchar(20) DEFAULT NULL"
+        },
+        {
+          "name": "rating",
+          "type": "int(11) DEFAULT NULL"
+        },
+        {
+          "name": "testuser",
+          "type": "bit(1) DEFAULT NULL"
+        },
+        {
+          "name": "figure_id",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "nickname",
+          "type": "varchar(64) DEFAULT 'Alice'"
+        },
+        {
+          "name": "signature",
+          "type": "varchar(256) DEFAULT '太懒了什么都没说'"
+        }
+      ],
+      "primary": ["userid"],
+      "unique": [
+        {
+          "name": "username",
+          "columns": ["username"]
+        }
+      ],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=utf8"
+    },
+    {
+      "name": "available_requests",
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "publisher_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "text",
+          "type": "varchar(512) DEFAULT NULL"
+        },
+        {
+          "name": "creation_time",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "end_time",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "status",
+          "type": "varchar(20) DEFAULT NULL"
+        }
+      ],
+      "primary": ["request_id"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=utf8"
+    },
+    {
+      "name": "available_responses",
+      "columns": [
+        {
+          "name": "response_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "actor_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "request_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "text",
+          "type": "varchar(256) DEFAULT NULL"
+        },
+        {
+          "name": "status",
+          "type": "varchar(20) DEFAULT NULL"
+        },
+        {
+          "name": "creation_time",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "push_time",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "num_likes",
+          "type": "int(11) DEFAULT '0'"
+        }
+      ],
+      "primary": ["response_id"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=utf8"
+    },
+    {
+      "name": "multimedia",
+      "columns": [
+        {
+          "name": "content_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "content_type",
+          "type": "varchar(10) NOT NULL"
+        },
+        {
+          "name": "uploader_id",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "upload_time",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "path",
+          "type": "varchar(256) NOT NULL"
+        },
+        {
+          "name": "size",
+          "type": "int(11) DEFAULT NULL"
+        }
+      ],
+      "primary": ["content_id"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
+    },
+    {
+      "name": "request_multimedia",
+      "columns": [
+        {
+          "name": "multimedia_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "request_id",
+          "type": "bigint(20) NOT NULL"
+        }
+      ],
+      "index": [
+        {
+          "name": "request_id",
+          "columns": ["request_id"]
+        }
+      ],
+      "primary": ["multimedia_id", "request_id"],
+      "constraint": ["`request_multimedia_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `available_requests` (`request_id`) ON DELETE CASCADE ON UPDATE CASCADE"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
+    },
+    {
+      "name": "response_multimedia",
+      "columns": [
+        {
+          "name": "multimedia_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "response_id",
+          "type": "bigint(20) NOT NULL"
+        }
+      ],
+      "index": [
+        {
+          "name": "response_id",
+          "columns": ["response_id"]
+        }
+      ],
+      "primary": ["multimedia_id", "response_id"],
+      "constraint": ["`response_multimedia_ibfk_1` FOREIGN KEY (`response_id`) REFERENCES `available_responses` (`response_id`) ON DELETE CASCADE ON UPDATE CASCADE"],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
+    },
+    {
+      "name": "thumbup",
+      "columns": [
+        {
+          "name": "response_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "liker_id",
+          "type": "bigint(20) NOT NULL"
+        },
+        {
+          "name": "like_time",
+          "type": "bigint(20) DEFAULT NULL"
+        }
+      ],
+      "index": [
+        {
+          "name": "response_id",
+          "columns": ["response_id"]
+        }
+      ],
+      "unique": [
+        {
+          "name": "response_id_2",
+          "columns": [
+            "response_id",
+            "liker_id"
+          ]
+        }
+      ],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=latin1"
+    },
+    {
+      "name": "valid_tokens",
+      "columns": [
+        {
+          "name": "userid",
+          "type": "bigint(20) DEFAULT NULL"
+        },
+        {
+          "name": "token",
+          "type": "varchar(256) DEFAULT NULL"
+        }
+      ],
+      "appendix": "ENGINE=InnoDB DEFAULT CHARSET=utf8"
+    }
+  ]
+}

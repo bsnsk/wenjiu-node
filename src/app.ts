@@ -5,9 +5,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var options = require('../.conf.json').mysql;
-var dbPool = require('./helpers/db').init("alchpool", options);
-console.log(dbPool);
+import {alchpool, initPool, initTables} from './helpers/db';
+initPool();
+initTables();
+console.log(alchpool);
 
 var routes = require('./routes/index');
 var requests = require('./routes/requests');

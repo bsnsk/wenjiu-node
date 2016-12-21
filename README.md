@@ -1,10 +1,43 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [温酒 Wenjiu](#温酒-wenjiu)
+	- [Functionalities](#functionalities)
+	- [Explanation](#explanation)
+	- [API Details](#api-details)
+		- [HTTP API Requests](#http-api-requests)
+			- [User and session](#user-and-session)
+			- [Request](#request)
+			- [Response](#response)
+			- [History](#history)
+			- [Multimedia file](#multimedia-file)
+		- [HTTP API Responses](#http-api-responses)
+
+<!-- /TOC -->
+
 # 温酒 Wenjiu
 
-敬请期待
+This is a node.js (`Express.js` + `Typescript` + `MySQL`) server for a social
+application Wenjiu, which has a corresponding Android client.
 
-## API
+## Functionalities
 
-### HTTP Requests
+The main functions of this server are
+
+- to provide a set of HTTP APIs for user activities,
+- to schedule timely scanning and send push requests to push notification
+platform, and
+- to store and manage multimedia files on the server disk.
+
+## Explanation
+
+This was firstly written in pure javascript (with `--harmony-async-await`),
+and later converted to Microsoft's Typescript in consideration of providing
+more type security and reducing possible bugs. Due to this conversion,
+code styles may have a *mysterious* (actually, not so mysterious) mixture.
+
+## API Details
+
+### HTTP API Requests
 
 `userid` and `token` are routinely in the headers while others should be sent
 in the body.
@@ -151,7 +184,7 @@ Content-Length: 44568
   - `token`, and
   - `imageid` (as a parameter inside of the url).
 
-### API Responses
+### HTTP API Responses
 
 Responses are in JSON format and have at least two fields:
 

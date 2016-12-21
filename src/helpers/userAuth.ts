@@ -12,7 +12,6 @@ module.exports = {
       typecheck.report(res);
       return;
     }
-    console.log({'into authentication': alchpool});
 
     let conn = await alchpool.getConnection();
     let [rows, fields] = await conn.execute(

@@ -172,7 +172,6 @@ router.post('/', userAuth, async (req, res, next) => {
     return;
   }
 
-  console.log(req.body);
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
     'SELECT request_id, end_time FROM available_requests WHERE ' +

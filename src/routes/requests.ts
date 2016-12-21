@@ -22,7 +22,6 @@ router.get('/', userAuth, async (req, res, next) => {
     creationTimeFilter = `AND r.creation_time < ${cursorInt}`;
   }
 
-  console.log({'creation time filter': creationTimeFilter});
   let conn = await alchpool.getConnection();
   let [rows, fields] = await conn.execute(
   ` SELECT
@@ -180,7 +179,6 @@ router.post('/', userAuth, async (req, res, next) => {
   if (req.body.multimedia != undefined)
     multimedia = JSON.parse(req.body.multimedia);
 
-  console.log(req.body);
   if (!typecheck.check(text, "string")
     || !typecheck.check(end_time, "int")
     || end_time <= Date.now()) {

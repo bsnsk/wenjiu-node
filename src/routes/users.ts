@@ -284,7 +284,6 @@ router.put('/:user_id', userAuth, async (req, res, next) => {
     }
 
   var setupString = infoStrings.join(',');
-  console.log(setupString);
 
   if (!typecheck.check(user_id, "int")
     || user_id != actor_id) {
@@ -336,7 +335,6 @@ router.post('/:user_id/reset_password', userAuth, async (req, res, next) => {
   else if (rows[0]['passwordhash'] != oldPassword)
     res.send(new APIResponse(false, "old password incorrect"));
   else {
-    console.log('old password verified');
     let [rows, fields] = await conn.execute(
       ` UPDATE all_users
         SET passwordhash=?

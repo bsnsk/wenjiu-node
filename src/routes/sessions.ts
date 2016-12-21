@@ -42,8 +42,6 @@ router.post('/', async (req, res, next) => {
     res.send(new APIResponse(false, "username not found"));
   else if (rows[0]['passwordhash'] == password){
 
-    console.log({"timestamp": new Date()});
-
     var token = jwt.sign({
       "username": username,
       "userid": rows[0]['userid'],

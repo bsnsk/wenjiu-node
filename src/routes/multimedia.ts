@@ -37,7 +37,6 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
 
   const newFilePath: string = path.join(__dirname, '../../', req.file.path);
   let hash = await md5File(newFilePath);
-  console.log("upload file with MD5 " + hash);
 
   let [rows, fields] = await conn.execute(
     ` SELECT file_id
@@ -48,7 +47,7 @@ router.post('/', userAuth, upload.single('data'), async (req, res, next) => {
   );
 
   if (rows.length > 0) {
-    console.log("file md5 already exists!");
+    console.log(`file md5 ${hash} already exists!`);
     fs.unlink(newFilePath);
     res.send(new APIResponse(true, "file uploaded", {
       "content_id": rows[0]["file_id"],

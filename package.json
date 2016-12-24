@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --harmony-async-await ./bin/www"
+    "start": "node ./bin/www",
+    "restart": "pm2 reload ./bin/www; pm2 reload pushScanner.js"
   },
   "dependencies": {
     "body-parser": "~1.13.2",

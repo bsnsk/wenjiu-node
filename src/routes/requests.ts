@@ -1,233 +1,29 @@
 var express = require('express');
-var typecheck = require('../helpers/typecheck');
 var userAuth = require('../helpers/userAuth').authenticate;
-var alchpool = require('../helpers/db').alchpool;
-import APIResponse from '../helpers/APIresponse';
-import {genInt as genId} from '../helpers/idgenerator';
 var router = express.Router();
 
 /*
  * [GET] View a list of requests
  */
-router.get('/', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.headers.userid);
-  var cursorCreationTime = req.query.last_time;
-  var creationTimeFilter;
-
-  if (cursorCreationTime == undefined
-    || isNaN(parseInt(cursorCreationTime)) )
-    creationTimeFilter = "";
-  else {
-    var cursorInt = parseInt(cursorCreationTime);
-    creationTimeFilter = `AND r.creation_time < ${cursorInt}`;
-  }
-
-  let conn = await alchpool.getConnection();
-  let [rows, fields] = await conn.execute(
-  ` SELECT
-      r.request_id,
-      u.nickname,
-      u.figure_id,
-      ' ' AS title,
-      IF (
-        CHARACTER_LENGTH(r.text) > 100,
-        CONCAT(LEFT(r.text, 100), '...'),
-        r.text
-      ) AS text,
-      r.creation_time,
-      r.end_time
-    FROM available_requests r
-    JOIN all_users u
-    ON
-      r.status IS NULL
-      AND r.publisher_id = u.userid
-      AND r.end_time > ?
-      AND r.publisher_id <> ?
-  ` + creationTimeFilter +
-  ` ORDER BY r.creation_time DESC
-    LIMIT 20;`,
-    [Date.now(), userid],
-    conn.release()
-  );
-  res.send(new APIResponse(true, "fetch recent requests", {"content": rows}));
-});
+import discoverRequests from './requests/requestDiscover';
+router.get('/', userAuth, discoverRequests);
 
 /*
  * [GET] View a request
  */
-router.get('/:request_id', userAuth, async (req, res, next) => {
-  var request_id = parseInt(req.params.request_id);
-  var userid = parseInt(req.headers.userid);
-  if (!typecheck.check(request_id, "int")) {
-    typecheck.report(res);
-    return;
-  }
-  let conn = await alchpool.getConnection();
-  let [rows, fields] = await conn.execute(
-    'SELECT ' +
-      'r.request_id, ' +
-      'u.nickname, ' +
-      'u.figure_id, ' +
-      'u.userid, ' +
-      "' ' AS title, " +
-      'r.text, ' +
-      'r.creation_time, ' +
-      'r.end_time ' +
-    'FROM available_requests r ' +
-    'JOIN all_users u ' +
-      'ON r.request_id = ? ' +
-      'AND r.publisher_id = u.userid;',
-    [request_id]
-  );
-  if (rows.length == 0) {
-    res.send(new APIResponse(false, "request not found"));
-    conn.release();
-  }
-  else if (rows.length > 1) {
-    res.send(new APIResponse(false,
-      "request id has duplicates (probably a server error)"));
-    conn.release();
-  }
-  else {
-    let [rows2, fields2] = await conn.execute(
-      ` SELECT
-          r.response_id,
-          u.figure_id,
-          u.nickname,
-          r.creation_time,
-          r.num_likes,
-          IF (
-            CHARACTER_LENGTH(r.text) > 30,
-            CONCAT(LEFT(r.text, 30), '...'),
-            r.text
-          ) AS text
-        FROM available_responses r
-        JOIN all_users u
-          ON request_id = ?
-          AND u.userid = r.actor_id;
-      `,
-      [rows[0]['request_id']]
-    );
-    let [rows3, fields3] = await conn.execute(
-      'SELECT multimedia_id FROM request_multimedia WHERE request_id=?',
-      [rows[0]['request_id']],
-      conn.release()
-    );
-    res.send(new APIResponse(true, "request fetched successfully.", {
-      "content": {
-                  "request_meta": rows[0],
-                  "multimedia": rows3,
-                  "responses": rows2
-                }
-    }));
-  }
-});
-
+import viewRequestDetail from './requests/requestDetail';
+router.get('/:request_id', userAuth, viewRequestDetail);
 
 /*
  * [DELETE] Delete a request
  */
-router.delete('/:request_id', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.headers.userid);
-  var request_id = parseInt(req.params.request_id);
-
-  if (!typecheck.check(request_id, "int")) {
-    typecheck.report(res);
-    return;
-  }
-
-  let conn = await alchpool.getConnection();
-  let [rows, fields] = await conn.execute(
-    'SELECT publisher_id, status FROM available_requests WHERE request_id=?;',
-    [request_id],
-    conn.release()
-  );
-  if (rows.length == 0)
-    res.send(new APIResponse(false, "request not found"));
-  else if (rows.length > 1)
-    res.send(new APIResponse(false,
-      "request id has duplicates (probably a server error)"));
-  else if (userid != parseInt(rows[0]['publisher_id']))
-    res.send(new APIResponse(false,
-      "this request cannot be deleted unless by its publisher"));
-  else if (rows[0]['status'] == 'deleted')
-    res.send(new APIResponse(false,
-      "request already deleted"));
-  else {
-    let conn = await alchpool.getConnection();
-    let [rows, fields] = await conn.execute(
-      "UPDATE `available_requests` SET `status` = 'deleted'" +
-      "WHERE request_id=?",
-      [request_id],
-      conn.release()
-    );
-    res.send(new APIResponse(true, "request deleted successfully."));
-  }
-});
-
+import requestDelete from './requests/requestDelete';
+router.delete('/:request_id', userAuth, requestDelete);
 
 /*
  * [POST] Publish a request
  */
-router.post('/', userAuth, async (req, res, next) => {
-  var userid = parseInt(req.headers.userid);
-  var title = req.body.title;
-  var text = req.body.text;
-  var end_time = req.body.endtime;
-  var multimedia;
-
-  if (req.body.multimedia != undefined)
-    multimedia = JSON.parse(req.body.multimedia);
-
-  if (!typecheck.check(text, "string")
-    || !typecheck.check(end_time, "int")
-    || end_time <= Date.now()) {
-    typecheck.report(res);
-    return;
-  }
-
-  if (title == undefined)
-    title = '';
-
-  let id = await genId('request');
-  let request_info =
-    [
-      id,
-      title,
-      text,
-      Date.now(),
-      end_time,
-      userid,
-    ];
-  let conn = await alchpool.getConnection();
-  let [rows, fields] = await conn.execute(
-    'INSERT INTO available_requests (' +
-      '`request_id`,' +
-      '`title`, ' +
-      '`text`, ' +
-      '`creation_time`, ' +
-      '`end_time`, ' +
-      '`publisher_id`' +
-    ') VALUES (?, ?, ?, ?, ?, ?)',
-    request_info
-  );
-  if (multimedia != undefined)
-  for (var i=0; i<multimedia.length; i++) {
-    let [rows, fields] = await conn.execute(
-      'INSERT INTO request_multimedia (' +
-        '`request_id`, ' +
-        '`multimedia_id` ' +
-      ') VALUES (?,?)',
-      [
-        id.toString(),
-        multimedia[i]
-      ]
-    );
-  }
-  res.send(new APIResponse(true, "request published", {
-    "requestid": id.toString()
-  }))
-  conn.release();
-});
+import requestPublish from './requests/requestPublish';
+router.post('/', userAuth, requestPublish);
 
 module.exports = router;

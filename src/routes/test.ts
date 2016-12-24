@@ -1,3 +1,6 @@
+
+/* DEPRECATED */
+
 var express = require('express');
 import {genInt as genId} from '../helpers/idgenerator';
 var filter = require('../helpers/filter').blacklist;

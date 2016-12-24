@@ -1,0 +1,36 @@
+{
+  /**
+   * Application configuration section
+   * (Guide: http://pm2.keymetrics.io/docs/usage/application-declaration/)
+   * 
+   * Usage: pm2 start ecosystem.json
+   */
+
+  apps : [
+
+    // Wenjiu API Application 
+    {
+      name      : "API",
+      script    : "./bin/www",
+      watch	: ["built"],
+      env: {
+        COMMON_VARIABLE: "true"
+      },
+      env_production : {
+        NODE_ENV: "production"
+      }
+    },
+
+    // Push Notification Scanner 
+    {
+      name      : "pushScanner",
+      script    : "pushScanner.js",
+      watch	: true,
+      instances	: 1,
+      env_production : {
+        NODE_ENV: "production"
+      }
+    }
+  ],
+
+}

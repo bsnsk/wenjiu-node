@@ -25,7 +25,7 @@ export default async (req, res, next) => {
   console.log(req.file.originalname);
   let conn = await alchpool.getConnection();
 
-  const newFilePath: string = path.join(__dirname, '../../', req.file.path);
+  const newFilePath: string = path.join(__dirname, '../../../', req.file.path);
   let hash = await md5File(newFilePath);
 
   let [rows, fields] = await conn.execute(

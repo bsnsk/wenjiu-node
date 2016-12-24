@@ -25,14 +25,15 @@ export default async (req, res, next) => {
     res.send(new APIResponse(false, "file id has duplicates (probably a server error)"));
   else {
     var filePath: string = rows[0]['path'];
+    var actualFilePath: string = path.join(__dirname, '../../../', filePath);
     console.log({
       "requesting": filePath,
-      "providing": path.join(__dirname, '../../', filePath),
+      "providing": actualFilePath,
       "image-only": imageonly
     });
     res.append('Multimedia-Type', rows[0]['content_type'])
     if (imageonly != 'yes' || rows[0]['content_type'] == 'IMG') {
-      res.sendFile(path.join(__dirname, '../../', filePath));
+      res.sendFile(actualFilePath);
     }
     else {
       res.send(new APIResponse(true, "multimedia file not sent back"));

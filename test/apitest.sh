@@ -3,7 +3,7 @@
 testUserId=1
 testUserToken="testusertoken"
 hostUrl="http://101.200.163.140:8001"
-# hostUrl="http://localhost:3000"
+# hostUrl="http://localhost:8091"
 declare -a urls
 
 function checkResult() {

@@ -25,9 +25,10 @@ export default async (req, res, next) => {
     res.send(new APIResponse(false, "file id has duplicates (probably a server error)"));
   else {
     var filePath: string = rows[0]['path'];
+    var actualFilePath: string = path.join(__dirname, '../../../', filePath);
     console.log({
       "requesting": filePath,
-      "providing": path.join(__dirname, '../../', filePath),
+      "providing": actualFilePath,
     });
     res.append('Multimedia-Type', rows[0]['content_type'])
     if (rows[0]['content_type'].toUpperCase() == 'IMG'
@@ -35,7 +36,7 @@ export default async (req, res, next) => {
       || rows[0]['content_type'].toUpperCase() == 'JPG'
       || rows[0]['content_type'].toUpperCase() == 'PNG'
     ) {
-      var dimensions = sizeOf(path.join(__dirname, '../../', filePath));
+      var dimensions = sizeOf(actualFilePath);
       res.send(new APIResponse(true, "fetch image dimensions", {
         "width": dimensions.width,
         "height": dimensions.height,

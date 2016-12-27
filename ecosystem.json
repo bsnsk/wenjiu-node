@@ -26,7 +26,6 @@
       name      : "pushScanner",
       script    : "pushScanner.js",
       watch	: true,
-      instances	: 1,
       env_production : {
         NODE_ENV: "production"
       }

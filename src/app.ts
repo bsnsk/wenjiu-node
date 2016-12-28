@@ -16,6 +16,7 @@ var responses = require('./routes/responses');
 var users = require('./routes/users');
 var multimedia = require('./routes/multimedia');
 var sessions = require('./routes/sessions');
+import apkpackage from './routes/apk';
 
 var test = require('./routes/test');
 
@@ -51,7 +52,10 @@ app.use('/api/responses', responses);
 app.use('/api/multimedia', multimedia);
 
 // - test
-app.use('/api/test', test);
+// app.use('/api/test', test);
+
+// - application apk download
+app.use('/wenjiu/apk', apkpackage);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
